@@ -1,0 +1,13 @@
+#Python Specific
+venv/
+venv_cpu/
+
+#PyCharm Specific
+.idea/
+
+#Raw Source Data
+raw_source_data/train_tier_1
+raw_source_data/train_tier_2
+raw_source_data/test
+
+#Temp Data
