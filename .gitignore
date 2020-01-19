@@ -1,6 +1,7 @@
 #Python Specific
 venv/
 venv_cpu/
+*.pyc
 
 #PyCharm Specific
 .idea/
@@ -11,3 +12,5 @@ raw_source_data/train_tier_2
 raw_source_data/test
 
 #Temp Data
+temp_data/tier1
+temp_data/tier2

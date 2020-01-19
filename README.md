@@ -16,8 +16,17 @@ _Please note that will this project is in active development the contents of the
 ```
 > python -m virtualenv venv
 > venv\scripts\activate
+> pip install https://download.lfd.uci.edu/pythonlibs/q4hpdf1k/Shapely-1.6.4.post2-cp37-cp37m-win_amd64.whl
+> pip install https://download.lfd.uci.edu/pythonlibs/q4hpdf1k/GDAL-3.0.3-cp37-cp37m-win_amd64.whl
+> pip install https://download.lfd.uci.edu/pythonlibs/q4hpdf1k/Fiona-1.8.13-cp37-cp37m-win_amd64.whl
+> pip install https://download.lfd.uci.edu/pythonlibs/q4hpdf1k/Rtree-0.9.3-cp37-cp37m-win_amd64.whl
+> pip install https://download.lfd.uci.edu/pythonlibs/q4hpdf1k/rasterio-1.1.2-cp37-cp37m-win_amd64.whl
+> pip3 install torch===1.3.1 torchvision===0.4.2 -f https://download.pytorch.org/whl/torch_stable.html
 (venv) > pip install -r requirements.txt
+> pip3 install torch===1.4.0 torchvision===0.5.0 -f https://download.pytorch.org/whl/torch_stable.html
 ```
+
+_note: everything above may need switched to anaconda_
 
 ### CPU-Only Learning
 
