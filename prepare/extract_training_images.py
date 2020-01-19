@@ -4,12 +4,14 @@
 from pathlib import Path
 import os
 import re
+import traceback
 
 import geopandas as gpd
 import numpy as np
 from pystac import Catalog, STAC_IO, Collection
 from rasterio.transform import from_bounds
 from rio_tiler import main as rt_main
+from rio_tiler.errors import TileOutsideBounds
 from shapely.geometry import Polygon
 from skimage.io import imsave
 import solaris as sol
@@ -19,14 +21,14 @@ from utility import use_project_path
 
 def rewrite_uri(uri):
     """Several places need to know how to rewrite URIs and get the actual file"""
-    print('Before: %s' % uri)
+    # print('Before: %s' % uri)
     uri = re.sub(r'\\', '/', uri)
-    uri = re.sub(r'http://localhost(D:|)/', '', uri)
+    uri = re.sub(r'http://localhost([CDcd]:|)/', '', uri)
     uri = re.sub(r'[a-z0-9]+-labels.json.*/([a-z0-9]+.geojson)', r'\1', uri)
     uri = re.sub(r'[a-z0-9]+.json.*/([a-z0-9]+).tif', r'\1/\1.tif', uri)
-    uri = re.sub(r'collection.jsonD:.*DSC672/', '', uri)
+    uri = re.sub(r'collection.json[CDcd]:.*DSC672/', '', uri)
     uri = re.sub(r'[a-z0-9]+-labels.*[a-z0-9]+-labels.json.*collection.json', 'collection.json', uri)
-    print(' After: %s' % uri)
+    # print(' After: %s' % uri)
     return uri
 
 
@@ -67,7 +69,7 @@ def save_mask_image(label_polygons, tile_polygons, xyz, tile_size, folder, prefi
     return(mask_image_filename)
 
 
-def save_area_images(area_collections, area_name='nia', area_id='825a50', label_id='825a50-labels',
+def save_area_images(area_collections, area_name='dar', area_id='f883a0', label_id='f883a0-labels',
                      folder='temp_data/tier1', zoom_level=19, tile_size=256, counter=0):
     print('Parsing: %s %s %s' % (area_name, area_id, label_id))
 
@@ -126,21 +128,66 @@ def save_area_images(area_collections, area_name='nia', area_id='825a50', label_
 
 if  __name__ == '__main__':
     # TODO: Have these variables pull from command line to override defaults
-    training_set = 'train_tier_1'
-    temp_folder = 'temp_data/tier1'
+    training_set = 'train_tier_2'
+    temp_folder = 'temp_data/tier2'
+    zoom_level = 19
+    tile_size = 256
 
+    # Using the project path fix to make sure IDE and command line both run the same, we open up
+    # the indicated catalog.  We are sending through the URL of the file via localhost to make things
+    # easier to parse--due to how poorly local files are handled by pystac.
     use_project_path()
     catalog = Catalog.from_file('http://localhost/raw_source_data/%s/catalog.json' % training_set)
-    collections = {cols.id: cols for cols in catalog.get_children()}
 
+    # Extract the area touples from the collections in the catalog
     areas = []
+    collections = {cols.id: cols for cols in catalog.get_children()}
     for c in collections:
         items = [x for x in collections[c].get_all_items()]
         for index, item in enumerate(items):
             if index % 2 == 0 and index + 1 < len(items):
                 areas.append((c, items[index].id, items[index + 1].id))
 
+    # Quick counter for the tiles to track progress, and the ability to skip known valid areas
     tiles = 0
+    skipping_valid_areas = False
+
+    # The whitelisted area details for debugging errors
+    tier1_valid_name = ['acc', 'mon', 'ptn', 'kam', 'nia']
+    tier1_valid_id = ['a017f9', 'b15fce', '353093', '0a4c40', '33cae6', '076995', '75cdfa', '9b8638',
+                      '06f252', 'c7415c', 'aee7fd', '3f8360', '425403', 'bd5c14', 'e52478', 'bc32f1']
+    tier2_valid_name = []
+    tier2_valid_id = []
+
+    # All of the areas with errors will be reported
+    areas_with_errors = []
+
     for area in areas:
-        tiles = save_area_images(collections, area[0], area[1], area[2], temp_folder, 19, 256, tiles)
+        # The purpose of skipping valid areas is to ensure that we can quickly get to the errors in the files
+        # without having to spend most of the time re-parsing clean data.
+        if skipping_valid_areas:
+            if area[0] in tier1_valid_name:
+                continue
+            if area[1] in tier1_valid_id:
+                continue
+            if area[0] in tier2_valid_name:
+                continue
+            if area[1] in tier2_valid_id:
+                continue
+
+        # For the area, we will save all of the images.  All exceptions listed are for known exceptions that
+        # were encountered when parsing the files so that they do not completely cause a parsing to fail.
+        try:
+            tiles = save_area_images(collections, area[0], area[1], area[2], temp_folder, zoom_level, tile_size, tiles)
+        except (ValueError, AssertionError, TileOutsideBounds) as err:
+            print("Exception encountered processing %s %s" % (area[0], area[1]))
+            areas_with_errors.append(area)
+            traceback.print_exc()
+
+    print("The following errors threw errors:")
+    print(areas_with_errors)
+
+    # TODO: Exploration needed for why the following pieces are failing to parse:
+    #       Tier 1: (dar, f883a0), (dar, 42f235), (znz, 3b20d4)
+    #       Tier 2: ?
 
