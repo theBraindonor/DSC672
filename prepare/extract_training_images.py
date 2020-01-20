@@ -128,8 +128,8 @@ def save_area_images(area_collections, area_name='dar', area_id='f883a0', label_
 
 if  __name__ == '__main__':
     # TODO: Have these variables pull from command line to override defaults
-    training_set = 'train_tier_2'
-    temp_folder = 'temp_data/tier2'
+    training_set = 'train_tier_1'
+    temp_folder = 'temp_data/tier1'
     zoom_level = 19
     tile_size = 256
 
@@ -153,11 +153,8 @@ if  __name__ == '__main__':
     skipping_valid_areas = False
 
     # The whitelisted area details for debugging errors
-    tier1_valid_name = ['acc', 'mon', 'ptn', 'kam', 'nia']
-    tier1_valid_id = ['a017f9', 'b15fce', '353093', '0a4c40', '33cae6', '076995', '75cdfa', '9b8638',
-                      '06f252', 'c7415c', 'aee7fd', '3f8360', '425403', 'bd5c14', 'e52478', 'bc32f1']
-    tier2_valid_name = []
-    tier2_valid_id = []
+    tier1_invalid_id = ['f883a0', '42f235', '3b20d4']
+    tier2_invalid_id = ['97ce35', 'bd129c']
 
     # All of the areas with errors will be reported
     areas_with_errors = []
@@ -166,13 +163,7 @@ if  __name__ == '__main__':
         # The purpose of skipping valid areas is to ensure that we can quickly get to the errors in the files
         # without having to spend most of the time re-parsing clean data.
         if skipping_valid_areas:
-            if area[0] in tier1_valid_name:
-                continue
-            if area[1] in tier1_valid_id:
-                continue
-            if area[0] in tier2_valid_name:
-                continue
-            if area[1] in tier2_valid_id:
+            if area[1] not in tier1_invalid_id and area[1] not in tier2_invalid_id:
                 continue
 
         # For the area, we will save all of the images.  All exceptions listed are for known exceptions that
@@ -188,6 +179,6 @@ if  __name__ == '__main__':
     print(areas_with_errors)
 
     # TODO: Exploration needed for why the following pieces are failing to parse:
-    #       Tier 1: (dar, f883a0), (dar, 42f235), (znz, 3b20d4)
-    #       Tier 2: ?
+    #       Tier 1: ('dar', 'f883a0'), ('dar', '42f235'), ('znz', '3b20d4')
+    #       Tier 2: ('dar', '97ce35'), ('mah', 'bd129c')
 
