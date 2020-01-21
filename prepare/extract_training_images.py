@@ -69,7 +69,7 @@ def save_mask_image(label_polygons, tile_polygons, xyz, tile_size, folder, prefi
     return(mask_image_filename)
 
 
-def save_area_images(area_collections, area_name='dar', area_id='f883a0', label_id='f883a0-labels',
+def save_area_images(area_collections, area_name='nia', area_id='825a50', label_id='825a50-labels',
                      folder='temp_data/tier1', zoom_level=19, tile_size=256, counter=0):
     print('Parsing: %s %s %s' % (area_name, area_id, label_id))
 
@@ -128,8 +128,18 @@ def save_area_images(area_collections, area_name='dar', area_id='f883a0', label_
 
 if  __name__ == '__main__':
     # TODO: Have these variables pull from command line to override defaults
-    training_set = 'train_tier_1'
-    temp_folder = 'temp_data/tier1'
+
+    training_set = 'sample_source_data/sample'
+    temp_folder = 'temp_data/sample'
+
+    # Uncomment for Tier 1 Data
+    #training_set = 'raw_source_data/train_tier_1'
+    #temp_folder = 'temp_data/tier1'
+
+    # Uncomment for Tier 2 Data
+    # training_set = 'raw_source_data/train_tier_2'
+    # temp_folder = 'temp_data/tier2'
+
     zoom_level = 19
     tile_size = 256
 
@@ -137,7 +147,7 @@ if  __name__ == '__main__':
     # the indicated catalog.  We are sending through the URL of the file via localhost to make things
     # easier to parse--due to how poorly local files are handled by pystac.
     use_project_path()
-    catalog = Catalog.from_file('http://localhost/raw_source_data/%s/catalog.json' % training_set)
+    catalog = Catalog.from_file('http://localhost/%s/catalog.json' % training_set)
 
     # Extract the area touples from the collections in the catalog
     areas = []

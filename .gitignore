@@ -1,6 +1,5 @@
 #Python Specific
 venv/
-venv_cpu/
 *.pyc
 
 #PyCharm Specific
@@ -14,3 +13,4 @@ raw_source_data/test
 #Temp Data
 temp_data/tier1
 temp_data/tier2
+temp_data/sample

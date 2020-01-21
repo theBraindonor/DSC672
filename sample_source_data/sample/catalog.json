@@ -1,0 +1,17 @@
+{
+    "id": "train_tier_1",
+    "stac_version": "0.8.1",
+    "description": "Tier 1 training data and labels",
+    "links": [
+        {
+            "rel": "child",
+            "href": "./nia/collection.json",
+            "type": "application/json"
+        },
+        {
+            "rel": "root",
+            "href": "./catalog.json",
+            "type": "application/json"
+        }
+    ]
+}
