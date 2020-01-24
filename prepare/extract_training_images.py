@@ -91,12 +91,22 @@ def save_area_images(area_collections, area_name='nia', area_id='825a50', label_
     polygon['geometry'].to_file('%s/geo/%s.geojson' % (folder, area_id), driver='GeoJSON')
 
     # Break the polygon into a set of tiles with the corresponding size and zoom level
-    # Please note that the following only works for windows!
-    command = ('type %s\\geo\\%s.geojson | ' % (folder.replace('/', '\\'), area_id))
-    command += ('supermercado burn %s |' % zoom_level)
-    command += 'mercantile shapes |'
-    command += ('fio collect > %s\\geo\\%s_%s_tiles.geojson' % (folder.replace('/', '\\'), area_id, zoom_level))
-    os.system(command)
+    
+    if os.name == 'posix':
+    	command_separator = '/'
+    	command_prefix = './venv/bin/'
+    	command_cat = 'cat'
+    else:
+    	command_separator = '\\'
+    	command_prefix = ''
+    	command_cat = 'type'
+    
+    command = ('%s %s/geo/%s.geojson | ' % (command_cat, folder, area_id))
+    command += ('%ssupermercado burn %s | ' % (command_prefix, zoom_level))
+    command += ('%smercantile shapes | ' % command_prefix)
+    command += ('%sfio collect > %s/geo/%s_%s_tiles.geojson' % (command_prefix, folder, area_id, zoom_level))
+    
+    os.system(command.replace('/', command_separator))
 
     # Read the resulting tiles file and grab the xyz
     tiles = gpd.read_file('%s/geo/%s_%s_tiles.geojson' % (folder, area_id, zoom_level))

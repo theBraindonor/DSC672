@@ -7,6 +7,8 @@ Authors:
 
 ## Initial Configuration
 
+### Windows Installation
+
 Due to the nature of some of the python libraries, an easy `pip install -r requirements.txt` will not be able to set everything up.  Instead, multiple wheels will need to be manually installed before installing the requirements.  This has been tested on Windows using 64-bit Python 3.7.4.  Using other Python versions or operating systems will require significant changes to the configuration.
 
 The following set of commands will manually install wheel files for the modules that will not work out of the box and allow for pip to process the requirements.txt file correctly.
@@ -24,6 +26,22 @@ The following set of commands will manually install wheel files for the modules 
 ```
 
 The above commands currently only support gpu-based learning.  Additional cpu-based learning commands may become necessary.
+
+### OSX Installation
+
+OSX installation does make use of both conda and pip.  Both GDAL and pytorch are unfortunately not fully working with solaris on the versions that will be installed by default.  For instance, you need gdal==3.0.2 to install solaris, but need gdal==2.3.3 in order to get everything to _run_.
+
+```
+> conda create --prefix ./venv python=3.7
+> conda activate ./venv
+> conda install gdal
+> conda install pytorch torchvision -c pytorch
+> pip install solaris
+> conda install gdal==2.3.3
+> conda install pytorch torchvision -c pytorch-nightly
+> pip install pystac
+> pip install rio-tiler
+```
 
 ## Sample Data Preparation
 
