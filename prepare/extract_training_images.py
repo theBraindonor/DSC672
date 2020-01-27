@@ -93,13 +93,13 @@ def save_area_images(area_collections, area_name='nia', area_id='825a50', label_
     # Break the polygon into a set of tiles with the corresponding size and zoom level
     
     if os.name == 'posix':
-    	command_separator = '/'
-    	command_prefix = './venv/bin/'
-    	command_cat = 'cat'
+        command_separator = '/'
+        command_prefix = './venv/bin/'
+        command_cat = 'cat'
     else:
-    	command_separator = '\\'
-    	command_prefix = ''
-    	command_cat = 'type'
+        command_separator = '\\'
+        command_prefix = ''
+        command_cat = 'type'
     
     command = ('%s %s/geo/%s.geojson | ' % (command_cat, folder, area_id))
     command += ('%ssupermercado burn %s | ' % (command_prefix, zoom_level))
