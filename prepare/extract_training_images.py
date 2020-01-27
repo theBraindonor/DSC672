@@ -139,12 +139,12 @@ def save_area_images(area_collections, area_name='nia', area_id='825a50', label_
 if  __name__ == '__main__':
     # TODO: Have these variables pull from command line to override defaults
 
-    training_set = 'sample_source_data/sample'
-    temp_folder = 'temp_data/sample'
+    #training_set = 'sample_source_data/sample'
+    #temp_folder = 'temp_data/sample'
 
     # Uncomment for Tier 1 Data
-    #training_set = 'raw_source_data/train_tier_1'
-    #temp_folder = 'temp_data/tier1'
+    training_set = 'raw_source_data/train_tier_1'
+    temp_folder = 'temp_data/tier1'
 
     # Uncomment for Tier 2 Data
     # training_set = 'raw_source_data/train_tier_2'
