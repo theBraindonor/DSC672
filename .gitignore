@@ -1,6 +1,7 @@
 #Python Specific
 venv/
 *.pyc
+*-checkpoint.ipynb
 
 #PyCharm Specific
 .idea/
