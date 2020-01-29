@@ -15,4 +15,5 @@ raw_source_data/test
 temp_data/tier1
 temp_data/tier2
 temp_data/sample
+temp_data/test
 temp_data/**/*.csv
