@@ -1,15 +1,17 @@
 #Python Specific
 venv/
-*.pyc
+maskr_venv/
 *-checkpoint.ipynb
+
+**/__pycache__/
+**/*.egg-info
+.DS_STORE
 
 #PyCharm Specific
 .idea/
 
 #Raw Source Data
-raw_source_data/train_tier_1
-raw_source_data/train_tier_2
-raw_source_data/test
+raw_source_data/**
 
 #Temp Data
 temp_data/tier1*

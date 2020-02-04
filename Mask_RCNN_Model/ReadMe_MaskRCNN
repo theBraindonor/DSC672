@@ -1,0 +1,14 @@
+Requirements to Run Mask R CNN
+
+- Create Separate Virtual Environment 
+
+Label the environment maskr_venv for windows run these commands
+
+``> python -m virtualenv maskr_venv``
+
+`> maskr_venv\scripts\activate`
+
+``> pip install -r requirements.txt``
+
+Download Mask_RCNN Model Folder for the required files to start running the code
+Run setup.py as well for the Mask RCNN Model prior to running Model_Setup.py
