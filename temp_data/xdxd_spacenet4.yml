@@ -23,9 +23,9 @@ data_specs:
   val_holdout_frac: 0.2
   data_workers:
 
-training_data_csv: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\sample\training_file.csv'
+training_data_csv: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\tier1\training_file.csv'
 validation_data_csv:
-inference_data_csv: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\sample\inference_file.csv'
+inference_data_csv: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\tier1\inference_file.csv'
 
 training_augmentation:
   augmentations:
@@ -92,7 +92,7 @@ inference_augmentation:
       p: 1.0
   p: 1.0
 training:
-  epochs:  20
+  epochs:  60
   steps_per_epoch:
   optimizer: Adam
   lr: 1e-4
@@ -111,10 +111,10 @@ training:
     model_checkpoint:
       filepath: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\xdxd_best.pth'
       monitor: val_loss
-  model_dest_path: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\xdxd.pth'
+  model_dest_path: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\xdxd_long60.pth'
   verbose: true
 
 inference:
   window_step_size_x:
   window_step_size_y:
-  output_dir: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\sample\inference_out\'
+  output_dir: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\tier1\inference_out\'
