@@ -84,13 +84,14 @@ def get_tile_mean(img_dir):
 
 # Calculate and display the image mean
 project_path = os.path.abspath(os.path.join(os.path.dirname('__file__'), '..'))
-image_path = project_path + '\\temp_data\\sample\\tile-256'
+image_path = project_path + '\\temp_data\\tier1\\tile-256'
 avg_pix, sd_pix = get_tile_mean(image_path)
 print(avg_pix)
 print(sd_pix)
 
+
 # Create the csv files for training and making predictions
-create_train_csv("sample", "sample")
+create_train_csv("tier1", "tier1")
 
 # Parse the yaml file into a dictionary - will need to update this absolute path
 # The yml file also contains absolute references that will need to be updated for each user
@@ -101,7 +102,9 @@ config = sol.utils.config.parse('C:\\Users\\Brian\\Documents\\GitHub\\DSC672\\te
 trainer = sol.nets.train.Trainer(config)
 trainer.train()
 
-# !!! This is where i'm a little lost on how to create predictions - This creates results but with warnings !!! #
+"""
+
+# make predictions using the model
 inferer = sol.nets.infer.Inferer(config)
 inf_df = sol.nets.infer.get_infer_df(config)
 inferer(inf_df)
@@ -138,6 +141,8 @@ axs[1, 0].set_title('Continous Probability Prediction')
 axs[1, 1].imshow(binary_prediction_sample, cmap='gray')
 axs[1, 1].set_title('Binary Prediction')
 plt.show()
+
+"""
 
 # !!! Need to add code that that test against the competition testing data
 
