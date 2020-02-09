@@ -115,6 +115,8 @@ class BuildingConfig(Config):
     # use small validation steps since the epoch is small
     VALIDATION_STEPS = 5
 
+    #IMAGE_RESIZE_MODE = "none"
+
 
 config = BuildingConfig()
 config.display()
@@ -172,17 +174,21 @@ class BuildingDataset(utils.Dataset):
 
     def load_mask(self, image_id):
         info = self.image_info[image_id]
+        # print("This is info ",str(info))
         # Get mask directory from image path
         mask_dir = os.path.join(os.path.dirname(os.path.dirname(info['path'])), "mask-256")
-        print("this is ", mask_dir) # REMOVE LATER FOR DEBUG
+        # print("this is ", mask_dir) # REMOVE LATER FOR DEBUG
         # Read mask files from .png image
         mask = []
         # image_ids = [f for f in listdir(dataset_dir) if isfile(join(dataset_dir, f))]
         for f in next(os.walk(mask_dir))[2]:
-            if f.endswith(".png"):
+            if f == info['id']: # match image id to mask id
                 m = skimage.io.imread(os.path.join(mask_dir, f)).astype(np.bool)
                 mask.append(m)
+
+        # print("masks has {} items".format(len(mask)))
         mask = np.stack(mask, axis=-1)
+        # print("mask's shape is {}".format(mask.shape))
         # Return mask, and array of class IDs of each instance. Since we have
         # one class ID, we return an array of ones
         return mask, np.ones([mask.shape[-1]], dtype=np.uint8)
@@ -207,6 +213,7 @@ subset = "sample/"
 dataset_train.load_building(dataset_dir, subset)
 dataset_train.prepare()
 
+# Print out dataset information regarding the training set
 print("Image Count: {}".format(len(dataset_train.image_ids)))
 print("Class Count: {}".format(dataset_train.num_classes))
 for i, info in enumerate(dataset_train.class_info):
@@ -214,30 +221,71 @@ for i, info in enumerate(dataset_train.class_info):
 
 
 
+# Load validation dataset
+dataset_val = BuildingDataset()
+dataset_val.load_building(dataset_dir, "val")
+dataset_val.prepare()
+
+# Print out Validation dataset info
+print("Image Count: {}".format(len(dataset_val.image_ids)))
+print("Class Count: {}".format(dataset_val.num_classes))
+for i, info in enumerate(dataset_val.class_info):
+    print("{:3}. {:50}".format(i, info['name']))
+
+
+
 # Load and display random samples
-image_ids = np.random.choice(dataset_train.image_ids, 4)
-for image_id in image_ids:
-    image = dataset_train.load_image(image_id)
-    mask, class_ids = dataset_train.load_mask(image_id)
-    visualize.display_top_masks(image, mask, class_ids, dataset_train.class_names, limit= 1) #Coded provided to visualize outputs
-    # display sample results
-    print(image_id)
-    fig, axs = plt.subplots(2, 2)
-    axs[0, 0].imshow(image, cmap='gray')
-    axs[0, 0].set_title('Original Image Tile')
-    print(image.shape)
-    # Fix Mask Shape
-    #if mask.shape[-1] == 160: #Seems that Masks are stacking on each other, shape issue
-       # print(mask.shape)
-       # mask = mask[..., :3]
-       # print(mask.shape)
-    axs[0, 1].imshow(mask, cmap='gray')
-    axs[0, 1].set_title('Actual Image Mask')
-    plt.show()
+#image_ids = np.random.choice(dataset_train.image_ids, 4)
+#for image_id in image_ids:
+  #  image = dataset_train.load_image(image_id)
+   # mask, class_ids = dataset_train.load_mask(image_id)
+   # visualize.display_top_masks(image, mask, class_ids, dataset_train.class_names, limit= 1) #Coded provided to visualize outputs
+
 
 
 ###########################################
 # TRAINING
+
+# Create model in training mode
+model = modellib.MaskRCNN(mode="training", config=config,
+                          model_dir=MODEL_DIR)
+
+# Which weights to start with?
+init_with = "coco"  # imagenet, coco, or last
+
+if init_with == "imagenet":
+    model.load_weights(model.get_imagenet_weights(), by_name=True)
+elif init_with == "coco":
+    # Load weights trained on MS COCO, but skip layers that
+    # are different due to the different number of classes
+    # See README for instructions to download the COCO weights
+    model.load_weights(COCO_MODEL_PATH, by_name=True,
+                       exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",
+                                "mrcnn_bbox", "mrcnn_mask"])
+elif init_with == "last":
+    # Load the last model you trained and continue training
+    model.load_weights(model.find_last(), by_name=True)
+
+# Train the head branches
+# Passing layers="heads" freezes all layers except the head
+# layers. You can also pass a regular expression to select
+# which layers to train by name pattern.
+model.train(dataset_train, dataset_val,
+            learning_rate=config.LEARNING_RATE,
+            epochs=1,
+            layers='heads')
+
+
+# Fine tune all layers
+# Passing layers="all" trains all layers. You can also
+# pass a regular expression to select which layers to
+# train by name pattern.
+model.train(dataset_train, dataset_val,
+            learning_rate=config.LEARNING_RATE / 10,
+            epochs=2,
+            layers="all")
+
+
 
 
 
