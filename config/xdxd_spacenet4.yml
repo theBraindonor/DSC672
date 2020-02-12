@@ -117,4 +117,4 @@ training:
 inference:
   window_step_size_x:
   window_step_size_y:
-  output_dir: 'temp_data/inverence_out/inference_out/'
+  output_dir: 'temp_data/inference_out/inference_out/'
