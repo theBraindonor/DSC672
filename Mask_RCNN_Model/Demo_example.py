@@ -73,8 +73,8 @@ class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
 
 # Load a random image from the images folder
 file_names = next(os.walk("/Users/Sebastian/Documents/GitHub/DSC672/temp_data/sample/tile-256/"))[2]
-image = skimage.io.imread(os.path.join("/Users/Sebastian/Documents/GitHub/DSC672/temp_data/sample/tile-256/", random.choice(file_names)))
-
+#image = skimage.io.imread(os.path.join("/Users/Sebastian/Documents/GitHub/DSC672/temp_data/sample/tile-256/", random.choice(file_names)))
+image = skimage.io.imread("/Users/Sebastian/Documents/GitHub/DSC672/temp_data/sample/tile-256/nia_825a50_130_530131_484356_20.png")
 #Remove Alpha channel
 if image.shape[-1] == 4:
     image = image[..., :3]

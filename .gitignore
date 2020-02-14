@@ -1,6 +1,7 @@
 #Python Specific
 venv/
 maskr_venv/
+maskr_vevn2/
 *-checkpoint.ipynb
 
 **/__pycache__/

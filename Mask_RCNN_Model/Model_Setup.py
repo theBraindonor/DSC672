@@ -87,6 +87,9 @@ VAL_IMAGE_IDS = ['nia_825a50_396_530115_484370_20.png','nia_825a50_397_530116_48
 # Configurations
 #################################################
 
+
+
+
 class BuildingConfig(Config):
     """Configuration for training on the sample Building  dataset.
     Derives from the base Config class and overrides values specific
@@ -98,6 +101,7 @@ class BuildingConfig(Config):
 
     #Train on 1 GPU and 8 images per PGU. We can put multiple images on each
     #GPU because the images are small. Batch size is 8 (GPUs *images/GPU)
+    # GPU_COUNT = 1 since training on CPU
     GPU_COUNT = 1
     IMAGES_PER_GPU = 1
 
@@ -110,10 +114,17 @@ class BuildingConfig(Config):
     IMAGE_MAX_DIM = 256
 
     # Use a small epoch since the data is simple
-    STEPS_PER_EPOCH = 100
+    # Total images / batch size = Steps
+    # Another way to think about it train_length / batch_size
+    #
+    STEPS_PER_EPOCH = 200
 
     # use small validation steps since the epoch is small
     VALIDATION_STEPS = 5
+
+    # Image mean (RGB)
+    # Need to Update
+    MEAN_PIXEL = np.array([123.7, 116.8, 103.9])
 
     #IMAGE_RESIZE_MODE = "none"
 
@@ -125,7 +136,7 @@ config.display()
 # Dataset
 #################################################
 
-## TOOK TEMPLATE SAMPLE FROM Nucleus.py was dealing with PNG images, seemed related to our file setup
+
 class BuildingDataset(utils.Dataset):
 
     def load_building(self, dataset_dir, subset):
@@ -201,9 +212,22 @@ class BuildingDataset(utils.Dataset):
         else:
             super(self.__class__, self).image_reference(image_id)
 
+# Function used for display purposes
+def get_ax(rows=1, cols=1, size=8):
+    """Return a Matplotlib Axes array to be used in
+    all visualizations in the notebook. Provide a
+    central point to control graph sizes.
+
+    Change the default size attribute to control the size
+    of rendered images
+    """
+    _, ax = plt.subplots(rows, cols, figsize=(size * cols, size * rows))
+    return ax
 
 
 
+############################################
+# DATA SET LOAD IN
 
 # Training Dataset
 dataset_train = BuildingDataset()
@@ -241,14 +265,14 @@ for i, info in enumerate(dataset_val.class_info):
    # mask, class_ids = dataset_train.load_mask(image_id)
    # visualize.display_top_masks(image, mask, class_ids, dataset_train.class_names, limit= 1) #Coded provided to visualize outputs
 
+############################################
 
 
 ###########################################
 # TRAINING
 
 # Create model in training mode
-model = modellib.MaskRCNN(mode="training", config=config,
-                          model_dir=MODEL_DIR)
+model = modellib.MaskRCNN(mode="training", config=config, model_dir=MODEL_DIR)
 
 # Which weights to start with?
 init_with = "coco"  # imagenet, coco, or last
@@ -266,35 +290,90 @@ elif init_with == "last":
     # Load the last model you trained and continue training
     model.load_weights(model.find_last(), by_name=True)
 
+
+
+#### Turn this on if you want to train the model
 # Train the head branches
 # Passing layers="heads" freezes all layers except the head
 # layers. You can also pass a regular expression to select
 # which layers to train by name pattern.
-model.train(dataset_train, dataset_val,
-            learning_rate=config.LEARNING_RATE,
-            epochs=1,
-            layers='heads')
+#model.train(dataset_train, dataset_val,
+ #           learning_rate=config.LEARNING_RATE,
+  #          epochs=5,
+   #         layers='heads')
 
-
+#### Turn this on if you want to train the model
 # Fine tune all layers
 # Passing layers="all" trains all layers. You can also
 # pass a regular expression to select which layers to
 # train by name pattern.
-model.train(dataset_train, dataset_val,
-            learning_rate=config.LEARNING_RATE / 10,
-            epochs=2,
-            layers="all")
-
-
-
+#model.train(dataset_train, dataset_val,
+ #           learning_rate=config.LEARNING_RATE / 10,
+  #          epochs=5,
+   #         layers="all")
 
 
 ###########################################
-## TODO: CURRENTLY MASK IMAGES ARE STACKING ONE ANOTHER, SHAPE SHOULD BE 256,256,1 BUT ITS COMING IN AS 256,256,160
-## TODO: SETUP INFRENCE MODEL BUILD FOR RUNING ON TESTING SET
-## TODO: NUCLEUS.PY HAS A TUTORIAL ON HOW TO BUILD MODEL FOR INFRENCE CURRENTLY REVIEWING
-## TODO: CLEAN UP PATHS WITHIN FILE TO BE PROJECT FREIENDLY
+# INFERENCE MODE
+inference_config = config
 
+# Recreate the model in inference mode
+model = modellib.MaskRCNN(mode="inference",
+                          config=inference_config,
+                          model_dir=MODEL_DIR)
+
+# /Users/Sebastian/Documents/GitHub/logs/building20200209T1400
+# Get path to saved weights
+# Either set a specific path or find last trained weights
+log_dir = "/Users/Sebastian/Documents/GitHub/logs/building20200210T2311/"
+model_path = os.path.join(log_dir, "mask_rcnn_building_0005.h5")
+# model_path = model.find_last()
+
+# Load trained weights
+print("Loading weights from ", model_path)
+model.load_weights(model_path, by_name=True)
+
+
+# Test on a random image
+# Image_ID = 59
+# Image_ID = 117 street sample
+# Image Id = 42 Building Sample
+image_id = random.choice(dataset_val.image_ids)
+#image_id = 42
+
+print("This is the image_ID", str(image_id)) #Find out which image is showing
+original_image, image_meta, gt_class_id, gt_bbox, gt_mask =\
+    modellib.load_image_gt(dataset_val, inference_config,
+                           image_id, use_mini_mask=False)
+
+log("original_image", original_image)
+log("image_meta", image_meta)
+log("gt_class_id", gt_class_id)
+log("gt_bbox", gt_bbox)
+log("gt_mask", gt_mask)
+
+
+#SHOW RANDOM IMAGE with MASK ON
+#visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id,
+ #                           dataset_train.class_names, figsize=(8, 8))
+
+
+# DETECT MASK FOR RANDOM IMAGE
+results = model.detect([original_image], verbose=1)
+
+r = results[0]
+visualize.display_instances(original_image, r['rois'], r['masks'], r['class_ids'],
+                            dataset_val.class_names, r['scores'], figsize =(8,8))
+
+
+
+
+
+
+
+
+## TODO: CLEAN UP PATHS WITHIN FILE TO BE PROJECT FREIENDLY
+## TODO: TUNE PARAMETERS WITHIN MASK RCNN TO FIT SAMPLE SET
 
 
 
