@@ -120,7 +120,7 @@ class BuildingConfig(Config):
     STEPS_PER_EPOCH = 200
 
     # use small validation steps since the epoch is small
-    VALIDATION_STEPS = 5
+    VALIDATION_STEPS = 10
 
     # Image mean (RGB)
     # Need to Update
@@ -297,20 +297,31 @@ elif init_with == "last":
 # Passing layers="heads" freezes all layers except the head
 # layers. You can also pass a regular expression to select
 # which layers to train by name pattern.
-#model.train(dataset_train, dataset_val,
- #           learning_rate=config.LEARNING_RATE,
-  #          epochs=5,
-   #         layers='heads')
+model.train(dataset_train, dataset_val,
+            learning_rate=config.LEARNING_RATE,
+            epochs=3,
+            layers='heads')
+
+
+# Training - Stage 2
+# Finetune layers from ResNet stage 4 and up
+print("Fine tune Resnet stage 4 and up")
+model.train(dataset_train, dataset_val,
+            learning_rate=config.LEARNING_RATE,
+            epochs=10,
+            layers='4+')
+
+
 
 #### Turn this on if you want to train the model
 # Fine tune all layers
 # Passing layers="all" trains all layers. You can also
 # pass a regular expression to select which layers to
 # train by name pattern.
-#model.train(dataset_train, dataset_val,
- #           learning_rate=config.LEARNING_RATE / 10,
-  #          epochs=5,
-   #         layers="all")
+model.train(dataset_train, dataset_val,
+            learning_rate=config.LEARNING_RATE / 10,
+            epochs=10,
+            layers="all")
 
 
 ###########################################
@@ -325,7 +336,7 @@ model = modellib.MaskRCNN(mode="inference",
 # /Users/Sebastian/Documents/GitHub/logs/building20200209T1400
 # Get path to saved weights
 # Either set a specific path or find last trained weights
-log_dir = "/Users/Sebastian/Documents/GitHub/logs/building20200210T2311/"
+log_dir = "/Users/Sebastian/Documents/GitHub/logs/building20200213T2133/"
 model_path = os.path.join(log_dir, "mask_rcnn_building_0005.h5")
 # model_path = model.find_last()
 
@@ -338,8 +349,9 @@ model.load_weights(model_path, by_name=True)
 # Image_ID = 59
 # Image_ID = 117 street sample
 # Image Id = 42 Building Sample
+# Image ID = 44
 image_id = random.choice(dataset_val.image_ids)
-#image_id = 42
+image_id = 44
 
 print("This is the image_ID", str(image_id)) #Find out which image is showing
 original_image, image_meta, gt_class_id, gt_bbox, gt_mask =\
@@ -354,8 +366,8 @@ log("gt_mask", gt_mask)
 
 
 #SHOW RANDOM IMAGE with MASK ON
-#visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id,
- #                           dataset_train.class_names, figsize=(8, 8))
+visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id,
+                            dataset_train.class_names, figsize=(8, 8))
 
 
 # DETECT MASK FOR RANDOM IMAGE

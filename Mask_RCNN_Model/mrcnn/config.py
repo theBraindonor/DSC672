@@ -85,7 +85,8 @@ class Config(object):
     # If enabled, resizes instance masks to a smaller size to reduce
     # memory load. Recommended when using high-resolution images.
     USE_MINI_MASK = True
-    MINI_MASK_SHAPE = (56, 56)  # (height, width) of the mini-mask
+    MINI_MASK_SHAPE = (128, 128)  # (height, width) of the mini-mask
+    # MINI_MASK_SHAPE = (56, 56)
 
     # Input image resizing
     # Generally, use the "square" resizing mode for training and inferencing
@@ -106,6 +107,18 @@ class Config(object):
     IMAGE_RESIZE_MODE = "square"
     IMAGE_MIN_DIM = 800
     IMAGE_MAX_DIM = 1024
+
+    # Minimum scaling ratio. Checked after MIN_IMAGE_DIM and can force further
+    # up scaling. For example, if set to 2 then images are scaled up to double
+    # the width and height, or more, even if MIN_IMAGE_DIM doesn't require it.
+    # However, in 'square' mode, it can be overruled by IMAGE_MAX_DIM.
+    IMAGE_MIN_SCALE = 0
+    # Number of color channels per image. RGB = 3, grayscale = 1, RGB-D = 4
+    # Changing this requires other changes in the code. See the WIKI for more
+    # details: https://github.com/matterport/Mask_RCNN/wiki
+    IMAGE_CHANNEL_COUNT = 3
+
+
 
     # Image mean (RGB)
     MEAN_PIXEL = np.array([123.7, 116.8, 103.9])
