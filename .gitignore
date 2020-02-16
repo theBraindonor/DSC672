@@ -2,6 +2,7 @@
 venv/
 maskr_venv/
 maskr_vevn2/
+mrcnn_venv/
 *-checkpoint.ipynb
 
 **/__pycache__/
