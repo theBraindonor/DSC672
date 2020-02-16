@@ -30,4 +30,12 @@ conda activate /home/ec2-user/SageMaker/DSC672/venv
 ```
 
 
+```
+echo ". /home/ec2-user/anaconda3/etc/profile.d/conda.sh" >> ~/.bashrc
+source ~/.bashrc
+conda activate tensorflow_p36
+conda install -c conda-forge scikit-image
+```
+
+
 
