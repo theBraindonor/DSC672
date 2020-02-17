@@ -65,7 +65,7 @@ class BuildingDataset(utils.Dataset):
         :return:
         """
         # Grab the mask image using the pandas data frame and convert it into the needed format.
-        image = self.images_df.iloc[image_id]
+        image = self.images_df.iloc[self.image_info[image_id]['id']]
         mask = [imread(image['mask'])]
         mask = np.stack(mask, axis=-1)
         return mask, np.ones([mask.shape[-1]], dtype=np.uint8)
