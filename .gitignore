@@ -22,3 +22,5 @@ temp_data/sample*
 temp_data/test*
 temp_data/**/*.csv
 temp_data/**/*.pth
+temp_data/logs*
+temp_data/mask_rcnn_coco.h5
