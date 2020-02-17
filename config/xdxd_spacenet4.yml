@@ -111,7 +111,7 @@ training:
     model_checkpoint:
       filepath: 'temp_data/xdxd_best.pth'
       monitor: val_loss
-  model_dest_path: 'temp_data/xdxd_long60.pth'
+  model_dest_path: 'temp_data/xdxd_test.pth'
   verbose: true
 
 inference:

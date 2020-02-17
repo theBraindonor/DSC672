@@ -7,6 +7,7 @@ import matplotlib.image as mpimg
 import numpy as np
 import pandas as pd
 import solaris as sol
+import yaml
 
 from utility import use_project_path
 

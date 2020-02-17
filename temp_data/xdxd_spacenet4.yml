@@ -1,120 +1,114 @@
-model_name: xdxd_spacenet4
-
-model_path:
-train: true
-infer: true
-
-pretrained: true
-nn_framework:  torch
 batch_size: 12
-
 data_specs:
-  width: 256
-  height:  256
-  dtype:
-  image_type: zscore
-  rescale: false
-  rescale_minima: auto
-  rescale_maxima: auto
   channels: 4
-  label_type: mask
+  data_workers: null
+  dtype: null
+  height: 256
+  image_type: zscore
   is_categorical: false
+  label_type: mask
   mask_channels: 1
+  rescale: false
+  rescale_maxima: auto
+  rescale_minima: auto
   val_holdout_frac: 0.2
-  data_workers:
-
-training_data_csv: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\tier1\training_file.csv'
-validation_data_csv:
-inference_data_csv: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\tier1\inference_file.csv'
-
-training_augmentation:
-  augmentations:
-    DropChannel:
-      idx: 3
-      axis: 2
-    HorizontalFlip:
-      p: 0.5
-    RandomRotate90:
-      p: 0.5
-    RandomCrop:
-      height: 256
-      width: 256
-      p: 1.0
-    Normalize:
-      mean:
-        - 0.465824
-        - 0.395090
-        - 0.368441
-      std:
-        - 0.303092
-        - 0.239203
-        - 0.224330
-      max_pixel_value: 255.0
-      p: 1.0
-  p: 1.0
-  shuffle: true
-validation_augmentation:
-  augmentations:
-    DropChannel:
-      idx: 3
-      axis: 2
-    CenterCrop:
-      height: 256
-      width: 256
-      p: 1.0
-    Normalize:
-      mean:
-        - 0.465824
-        - 0.395090
-        - 0.368441
-      std:
-        - 0.303092
-        - 0.239203
-        - 0.224330
-      max_pixel_value: 255.0
-      p: 1.0
-  p: 1.0
+  width: 256
+infer: true
+inference:
+  output_dir: C:\Users\Brian\Documents\GitHub\DSC672\temp_data\inference_out\
+  window_step_size_x: null
+  window_step_size_y: null
 inference_augmentation:
   augmentations:
     DropChannel:
-      idx: 3
       axis: 2
+      idx: 3
     Normalize:
-      mean:
-        - 0.465824
-        - 0.395090
-        - 0.368441
-      std:
-        - 0.303092
-        - 0.239203
-        - 0.224330
       max_pixel_value: 255.0
+      mean:
+      - 0.4694540883980545
+      - 0.39878097047992783
+      - 0.37210627163157745
       p: 1.0
+      std:
+      - 0.5592284947687913
+      - 0.46570573093063344
+      - 0.4358853575316516
   p: 1.0
+inference_data_csv: C:\Users\Brian\Documents\GitHub\DSC672\temp_data\solaris_inference_file.csv
+model_name: xdxd_spacenet4
+model_path: null
+nn_framework: torch
+pretrained: true
+train: true
 training:
-  epochs:  60
-  steps_per_epoch:
-  optimizer: Adam
-  lr: 1e-4
-  opt_args:
+  callbacks:
+    model_checkpoint:
+      filepath: C:\Users\Brian\Documents\GitHub\DSC672\temp_data\xdxd_best.pth
+      monitor: val_loss
+  checkpoint_frequency: 10
+  epochs: 60
   loss:
-    bcewithlogits:
-    jaccard:
+    bcewithlogits: null
+    jaccard: null
   loss_weights:
     bcewithlogits: 10
     jaccard: 2.5
+  lr: 1e-4
   metrics:
-    training:
-    validation:
-  checkpoint_frequency: 10
-  callbacks:
-    model_checkpoint:
-      filepath: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\xdxd_best.pth'
-      monitor: val_loss
-  model_dest_path: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\xdxd_long60.pth'
+    training: null
+    validation: null
+  model_dest_path: C:\Users\Brian\Documents\GitHub\DSC672\temp_data\xdxd.pth
+  opt_args: null
+  optimizer: Adam
+  steps_per_epoch: null
   verbose: true
-
-inference:
-  window_step_size_x:
-  window_step_size_y:
-  output_dir: 'C:\Users\Brian\Documents\GitHub\DSC672\temp_data\tier1\inference_out\'
+training_augmentation:
+  augmentations:
+    DropChannel:
+      axis: 2
+      idx: 3
+    HorizontalFlip:
+      p: 0.5
+    Normalize:
+      max_pixel_value: 255.0
+      mean:
+      - 0.4694540883980545
+      - 0.39878097047992783
+      - 0.37210627163157745
+      p: 1.0
+      std:
+      - 0.5592284947687913
+      - 0.46570573093063344
+      - 0.4358853575316516
+    RandomCrop:
+      height: 256
+      p: 1.0
+      width: 256
+    RandomRotate90:
+      p: 0.5
+  p: 1.0
+  shuffle: true
+training_data_csv: C:\Users\Brian\Documents\GitHub\DSC672\temp_data\solaris_training_file.csv
+validation_augmentation:
+  augmentations:
+    CenterCrop:
+      height: 256
+      p: 1.0
+      width: 256
+    DropChannel:
+      axis: 2
+      idx: 3
+    Normalize:
+      max_pixel_value: 255.0
+      mean:
+      - 0.4694540883980545
+      - 0.39878097047992783
+      - 0.37210627163157745
+      p: 1.0
+      std:
+      - 0.5592284947687913
+      - 0.46570573093063344
+      - 0.4358853575316516
+  p: 1.0
+validation_data_csv: null
