@@ -12,7 +12,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import glob
 import skimage
-
+from scipy import ndimage
 from skimage.io import imread
 import pandas as pd
 
@@ -66,8 +66,17 @@ class BuildingDataset(utils.Dataset):
         """
         # Grab the mask image using the pandas data frame and convert it into the needed format.
         image = self.images_df.iloc[self.image_info[image_id]['id']]
-        mask = [imread(image['mask'])]
-        mask = np.stack(mask, axis=-1)
+        mask = imread(image['mask'])
+
+        # Split Mask Images before assigning ID to entire image
+        mask_array = create_separate_mask(mask)
+
+        # If run into an image that doesnt have building masks
+        # Set the mask_array back to mask image
+        if not mask_array:
+            mask_array = [imread(image['mask'])]
+
+        mask = np.stack(mask_array, axis=-1)
         return mask, np.ones([mask.shape[-1]], dtype=np.uint8)
 
     def image_reference(self, image_id):
@@ -77,6 +86,31 @@ class BuildingDataset(utils.Dataset):
             return info["id"]
         else:
             super(self.__class__, self).image_reference(image_id)
+
+# Function used to Split the mask Images
+def create_separate_mask(mask):
+    # bring in mask
+    label_im, nb_labels = ndimage.label(mask)
+    # Set up empty array to hold split mask images
+    mask_array = []
+    for i in range(nb_labels):
+        # create an array which size is same as the mask but filled with
+        # values that we get from the label_im.
+        # If there are three masks, then the pixels are labeled
+        # as 1, 2 and 3.
+
+        mask_compare = np.full(np.shape(label_im), i + 1)
+
+        # check equality test and have the value 1 on the location of each mask
+        separate_mask = np.equal(label_im, mask_compare).astype(int)
+
+        # replace 1 with 255 for visualization as rgb image
+
+        separate_mask[separate_mask == 1] = 255
+        # append separate mask to the mask_array
+        mask_array.append(separate_mask)
+
+    return mask_array
 
 
 # Function used for display purposes
@@ -167,11 +201,11 @@ if __name__ == '__main__':
     # Create model in inference
     model = modellib.MaskRCNN(mode="inference", config=config, model_dir=MODEL_DIR)
     # For now, we are just going to find the last weights file.
-    model_path = 'temp_data/logs/building20200216T2027/mask_rcnn_building_0003.h5'
+    model_path = 'temp_data/logs/mask_rcnn_building_0080.h5'
     model.load_weights(model_path, by_name=True)
 
     #
-    # Note for Sebastion: I have no idea how well the rest of this code works...I haven't gotten far enough to
+    # Note for Sebastian: I have no idea how well the rest of this code works...I haven't gotten far enough to
     # test it out just yet.
     #
 
