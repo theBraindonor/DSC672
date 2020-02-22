@@ -10,6 +10,7 @@ import numpy as np
 import cv2
 import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import glob
 import skimage
 from scipy import ndimage
@@ -153,13 +154,52 @@ def get_training_images_split(train_set, split):
     return training_df
 
 
+def get_tile_mean(img_dir):
+    """ function to calculate mean of images for preprocessing with yml file """
+
+    # Access all PNG files in directory
+    imlist = [image_file for image_file in glob.iglob('%s/**/*.png' % img_dir, recursive=True)]
+
+    # Get the sum and count of pixel values across all images
+    total_sum = 0
+    total_count = 0
+    chan1 = []
+    chan2 = []
+    chan3 = []
+    for im in imlist:
+        cur_img = mpimg.imread(im)
+        cur_sum = np.sum(cur_img, axis=tuple(range(cur_img.ndim - 1)))
+        cur_count = np.shape(cur_img)[0] * np.shape(cur_img)[1]
+        total_sum += cur_sum
+        total_count += cur_count
+
+        # appending all values for std dev (might need to rework this for large sample)
+        chan1.append(cur_img[0][0][0])
+        chan2.append(cur_img[0][0][1])
+        chan3.append(cur_img[0][0][2])
+
+    # Store Values into Numpy array then split numpy array
+    avg_pix = total_sum / total_count
+
+    # Set values to RGB(Ignore channel 4)
+    y = np.split(avg_pix, 4)
+    R = float(y[0] * 255)
+    G = float(y[1] * 255)
+    B = float(y[2] * 255)
+
+    # Return the mean for images channels
+    return (R, G, B)
+
+
+
+
 if __name__ == '__main__':
     # Using the project path sets us to the root of the repository.
     use_project_path()
 
     # Temporary configuration variables will be contained here.  They will hopefully be updated to runtime
     # arguments once everything is working
-    TRAINING_COLLECTION = 'sample_lg'
+    TRAINING_COLLECTION = 'sample2'
     VALIDATION_SIZE = 0.2
     BATCH_SIZE = 8
     INITIALIZE_WITH = 'coco'
@@ -181,11 +221,17 @@ if __name__ == '__main__':
     training_image_count = len(training_images[(training_images['validation'] == 0.0)])
     validation_image_count = len(training_images[(training_images['validation'] == 1.0)])
 
+    # Get Mean Pixel Values of Images being loaded in
+    image_path = 'temp_data/%s/tile-256' % TRAINING_COLLECTION
+    R, G, B = get_tile_mean(image_path)
+
+
     # Create the mrcnn configuration object.  We are adjusting everything to understand batch size and using
     # the training and validation lengths as read back in from the pandas dataframe
     config = BuildingConfig()
     config.STEPS_PER_EPOCH = int(training_image_count / BATCH_SIZE)
     config.VALIDATION_STEPS = int(validation_image_count / BATCH_SIZE)
+    config.MEAN_PIXEL = np.array([R, G, B]) # Use Mean Pixel of dataset being loaded in
     config.display()
 
     # Load the training image dataset.
