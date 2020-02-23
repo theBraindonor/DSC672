@@ -18,9 +18,11 @@ raw_source_data/**
 #Temp Data
 temp_data/tier1*
 temp_data/tier2*
+temp_data/tier1_lg*
 temp_data/sample*
 temp_data/test*
 temp_data/**/*.csv
 temp_data/**/*.pth
 temp_data/logs*
 temp_data/mask_rcnn_coco.h5
+temp_data/temp_test*

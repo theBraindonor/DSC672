@@ -143,12 +143,12 @@ if  __name__ == '__main__':
     #temp_folder = 'temp_data/sample'
 
     # Uncomment for Tier 1 Data
-    training_set = 'raw_source_data/train_tier_1'
-    temp_folder = 'temp_data/tier1'
+    #training_set = 'raw_source_data/train_tier_1'
+    #temp_folder = 'temp_data/tier1'
 
     # Uncomment for Tier 2 Data
-    # training_set = 'raw_source_data/train_tier_2'
-    # temp_folder = 'temp_data/tier2'
+    training_set = 'raw_source_data/train_tier_2'
+    temp_folder = 'temp_data/tier2'
 
     zoom_level = 19
     tile_size = 256
