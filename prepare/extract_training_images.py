@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
 from pathlib import Path
 import os
 import re
@@ -137,21 +138,32 @@ def save_area_images(area_collections, area_name='nia', area_id='825a50', label_
 
 
 if  __name__ == '__main__':
-    # TODO: Have these variables pull from command line to override defaults
 
-    #training_set = 'sample_source_data/sample'
-    #temp_folder = 'temp_data/sample'
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-ts', '--training-set', default='sample_source_data/sample',
+                        help='Folder Containing Training Data')
+    parser.add_argument('-ds', '--data-set', default='temp_data/sample',
+                        help='Folder Containing Image Dataset')
+    parser.add_argument('-s', '--size', default=256,
+                        help='Pixel size of tiles to be created')
+    parser.add_argument('-z', '--zoom', default=19,
+                        help='Zoom level to use when creating tiles')
+    arguments = vars(parser.parse_args())
 
-    # Uncomment for Tier 1 Data
-    #training_set = 'raw_source_data/train_tier_1'
-    #temp_folder = 'temp_data/tier1'
+    training_set = arguments['training_set']
+    data_set = arguments['data_set']
+    tile_size = int(arguments['size'])
+    zoom_level = int(arguments['zoom'])
 
-    # Uncomment for Tier 2 Data
-    training_set = 'raw_source_data/train_tier_2'
-    temp_folder = 'temp_data/tier2'
-
-    zoom_level = 19
-    tile_size = 256
+    print('')
+    print('Starting Training Image Extraction...')
+    print('')
+    print('Parameters:')
+    print('    Training Set: %s' % training_set)
+    print('        Data Set: %s' % data_set)
+    print('       Tile Size: %s' % tile_size)
+    print('      Zoom Level: %s' % zoom_level)
+    print('')
 
     # Using the project path fix to make sure IDE and command line both run the same, we open up
     # the indicated catalog.  We are sending through the URL of the file via localhost to make things
@@ -189,7 +201,7 @@ if  __name__ == '__main__':
         # For the area, we will save all of the images.  All exceptions listed are for known exceptions that
         # were encountered when parsing the files so that they do not completely cause a parsing to fail.
         try:
-            tiles = save_area_images(collections, area[0], area[1], area[2], temp_folder, zoom_level, tile_size, tiles)
+            tiles = save_area_images(collections, area[0], area[1], area[2], data_set, zoom_level, tile_size, tiles)
         except (ValueError, AssertionError, TileOutsideBounds) as err:
             print("Exception encountered processing %s %s" % (area[0], area[1]))
             areas_with_errors.append(area)

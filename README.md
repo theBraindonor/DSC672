@@ -7,11 +7,11 @@ Authors:
 
 ## Initial Configuration
 
+This project makes use of two independant Python virtual environments. One for [Solaris](https://github.com/CosmiQ/solaris) and one for [Mask R-CNN](https://github.com/matterport/Mask_RCNN).  These environments have not been unified due to the steps necessary to install Solaris.  The package and some of its dependencies are new enough that they are not yet fully stable in pip and conda.
+
 ### Windows Installation
 
-Due to the nature of some of the python libraries, an easy `pip install -r requirements.txt` will not be able to set everything up.  Instead, multiple wheels will need to be manually installed before installing the requirements.  This has been tested on Windows using 64-bit Python 3.7.4.  Using other Python versions or operating systems will require significant changes to the configuration.
-
-The following set of commands will manually install wheel files for the modules that will not work out of the box and allow for pip to process the requirements.txt file correctly.
+#### Solaris
 
 ```
 > python -m virtualenv venv
@@ -25,9 +25,19 @@ The following set of commands will manually install wheel files for the modules 
 > pip install -r requirements.txt
 ```
 
-The above commands currently only support gpu-based learning.  Additional cpu-based learning commands may become necessary.
+#### Mask R-CNN
+
+Be sure to use the `mcrnn-requirements-gpu.txt` file to make use of a local GPU.
+
+```
+> python -m virtualenv mrcnn_venv
+> venv\scripts\activate
+> pip install -r mrcnn-requirements.txt
+```
 
 ### OSX Installation
+
+#### Solaris
 
 OSX installation does make use of both conda and pip.  Both GDAL and pytorch are unfortunately not fully working with solaris on the versions that will be installed by default.  For instance, you need gdal==3.0.2 to install solaris, but need gdal==2.3.3 in order to get everything to _run_.
 
@@ -42,6 +52,18 @@ OSX installation does make use of both conda and pip.  Both GDAL and pytorch are
 > pip install pystac
 > pip install rio-tiler
 ```
+
+#### Mask R-CNN
+
+```
+> python -m virtualenv mrcnn_venv
+> pip install -r mrcnn-requirements.txt
+> venv\scripts\activate
+```
+
+### Linux Instalation
+
+Please refer to the [SageMaker Guide](SageMaker.md) for details on installing the required Python modules for linux.
 
 ## Sample Data Preparation
 
@@ -65,3 +87,32 @@ Once that is done, the following directories should now be present in the `raw_s
 * `train_tier_1`
 * `train_tier_2`
 * `test`
+
+## Real Data Preparation
+
+Once everything has been downloaded and extracted to the indicated folders, the training data can be created using the following commands:
+
+```
+> python -m prepare.extract_training_images -ts raw_source_data/train_tier_1 -ds temp_data/tier1 -s 256 -z 19
+> python -m prepare.extract_training_images -ts raw_source_data/train_tier_1 -ds temp_data/tier1_lg -s 256 -z 20
+> python -m prepare.extract_training_images -ts raw_source_data/train_tier_2 -ds temp_data/tier2 -s 256 -z 19
+> python -m prepare.extract_training_images -ts raw_source_data/train_tier_2 -ds temp_data/tier2_lg -s 256 -z 20
+```
+
+This will create 256x256 pixel tiles at a zoom level of 19 and 20.
+
+The testing data can be prepared using the following command:
+
+```
+> python -m prepare.resize_test_images -ts raw_source_data/test -ds temp_data/test -s 256
+```
+
+_Please note: Preparing the data will take a significant amount of time._
+
+## License and Attribution
+
+The following project includes source code and examples from the following projects:
+
+### Solaris
+
+### Mask R-CNN

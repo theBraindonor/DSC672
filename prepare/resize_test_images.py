@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import argparse
 import glob
 from pathlib import Path
 import re
@@ -13,8 +14,28 @@ from skimage.transform import resize
 from utility import use_project_path
 
 if __name__ == '__main__':
-    tile_size = 256
-    temp_folder = 'temp_data/test'
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-ts', '--training-set', default='raw_source_data/test',
+                        help='Folder Containing Testing Data')
+    parser.add_argument('-ds', '--data-set', default='temp_data/test',
+                        help='Folder Containing Image Dataset')
+    parser.add_argument('-s', '--size', default=256,
+                        help='Pixel size of tiles to be created')
+    arguments = vars(parser.parse_args())
+
+    training_set = arguments['training_set']
+    data_set = arguments['data_set']
+    tile_size = int(arguments['size'])
+
+    print('')
+    print('Starting Training Image Extraction...')
+    print('')
+    print('Parameters:')
+    print('    Training Set: %s' % training_set)
+    print('        Data Set: %s' % data_set)
+    print('       Tile Size: %s' % tile_size)
+    print('')
 
     use_project_path()
 
@@ -23,10 +44,10 @@ if __name__ == '__main__':
 
     tiles = 0
 
-    Path('%s/tile-%s/' % (temp_folder, tile_size)).mkdir(parents=True, exist_ok=True)
+    Path('%s/tile-%s/' % (data_set, tile_size)).mkdir(parents=True, exist_ok=True)
 
     # We will recurse through all of the tile PNG files in the temp_data folder
-    for tile_filename in glob.iglob('raw_source_data/test/**/*.tif', recursive=True):
+    for tile_filename in glob.iglob('%s/**/*.tif' % training_set, recursive=True):
 
         # Quickly coerce everything into posix-style paths
         tile_filename = tile_filename.replace('\\', '/')
@@ -43,7 +64,7 @@ if __name__ == '__main__':
             tile_image = imread(tile_filename, plugin='pil')[0]
             tile_image = resize(tile_image, (tile_size, tile_size))
 
-            save_filename = '%s/tile-%s/%s.png' % (temp_folder, tile_size, file_map)
+            save_filename = '%s/tile-%s/%s.png' % (data_set, tile_size, file_map)
             print(save_filename)
             imsave(save_filename, img_as_ubyte(tile_image))
 
