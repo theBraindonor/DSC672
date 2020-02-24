@@ -26,12 +26,8 @@ if __name__ == '__main__':
                         help='The image collection to load.')
     parser.add_argument('-v', '--validation', default=0.2,
                         help='The size of the validation set.')
-    parser.add_argument('-ipg', '--images-per-gpu', default=1,
+    parser.add_argument('-b', '--batch-size', default=10,
                         help='The number of images to batch to the GPU.')
-    parser.add_argument('-spe', '--steps-per-epoch', default=50,
-                        help='The number of training steps to perform.')
-    parser.add_argument('-vs', '--validation-steps', default=5,
-                        help='The number of validation steps to perform.')
     parser.add_argument('-i', '--init-with', default='coco',
                         help='How to initialize the model for training.')
     parser.add_argument('-eh', '--epochs-head', default=1,
@@ -54,9 +50,7 @@ if __name__ == '__main__':
     IMAGE_PATH = arguments['image_path']
     TRAINING_COLLECTION = arguments['collection']
     VALIDATION_SIZE = float(arguments['validation'])
-    IMAGES_PER_GPU = int(arguments['images_per_gpu'])
-    STEPS_PER_EPOCH = int(arguments['steps_per_epoch'])
-    VALIDATION_STEPS = int(arguments['validation_steps'])
+    BATCH_SIZE = int(arguments['batch_size'])
     INITIALIZE_WITH = arguments['init_with']
     EPOCHS_HEAD = int(arguments['epochs_head'])
     EPOCHS_RESNET = int(arguments['epochs_resnet'])
@@ -72,9 +66,7 @@ if __name__ == '__main__':
     print('          Image Path: %s' % IMAGE_PATH)
     print('          Collection: %s' % TRAINING_COLLECTION)
     print('     Validation Size: %s' % VALIDATION_SIZE)
-    print('      Images Per GPU: %s' % IMAGES_PER_GPU)
-    print('     Steps Per Epoch: %s' % STEPS_PER_EPOCH)
-    print('    Validation Steps: %s' % VALIDATION_STEPS)
+    print('          Batch Size: %s' % BATCH_SIZE)
     print('     Initialize With: %s' % INITIALIZE_WITH)
     print('         Epochs Head: %s' % EPOCHS_HEAD)
     print('       Epochs ResNet: %s' % EPOCHS_RESNET)
@@ -106,9 +98,10 @@ if __name__ == '__main__':
 
     # Create the mrcnn configuration object and update with command line variables.
     config = MaskRCNNBuildingConfig()
-    config.IMAGES_PER_GPU = IMAGES_PER_GPU
-    config.STEPS_PER_EPOCH = STEPS_PER_EPOCH
-    config.VALIDATION_STEPS = VALIDATION_STEPS
+    config.IMAGES_PER_GPU = BATCH_SIZE
+    config.BATCH_SIZE = config.GPU_COUNT * config.IMAGES_PER_GPU
+    config.STEPS_PER_EPOCH = max(int(training_image_count / BATCH_SIZE), 20)
+    config.VALIDATION_STEPS = max(int(validation_image_count / BATCH_SIZE * 10), 4)
     config.display()
 
     # Load the training image dataset.
