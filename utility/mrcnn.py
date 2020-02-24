@@ -32,12 +32,14 @@ class MaskRCNNBuildingConfig(Config):
     STEPS_PER_EPOCH = 100  # TODO: Find a clean way to override this.  It's just getting replaced in code for now
     VALIDATION_STEPS = 10 # TODO: Find a clean way to override this.  It's just getting replaced in code for now
     MEAN_PIXEL = np.array([123.7, 116.8, 103.9]) # TODO: Update with better means
-
+    USE_MINI_MASK = False  # Giving this a try...
+    RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)  # Giving this a try...
 
 class MaskRCNNBuildingDataset(utils.Dataset):
     def __init__(self, images_df):
         super().__init__()
         self.images_df = images_df
+        self.mask_cache = dict()
 
     def load_building(self, validation=False):
         """
@@ -57,6 +59,9 @@ class MaskRCNNBuildingDataset(utils.Dataset):
         :param image_id:
         :return:
         """
+        if image_id in self.mask_cache:
+            return self.mask_cache[image_id]
+
         # Grab the mask image using the pandas data frame and convert it into the needed format.
         image = self.images_df.iloc[self.image_info[image_id]['id']]
         mask = imread(image['mask'])
@@ -70,7 +75,12 @@ class MaskRCNNBuildingDataset(utils.Dataset):
             mask_array = [imread(image['mask'])]
 
         mask = np.stack(mask_array, axis=-1)
-        return mask, np.ones([mask.shape[-1]], dtype=np.uint8)
+
+        # Cache the result for later
+        result = mask, np.ones([mask.shape[-1]], dtype=np.uint8)
+        self.mask_cache[image_id] = result
+
+        return result
 
     def image_reference(self, image_id):
         """Return the path of the image."""

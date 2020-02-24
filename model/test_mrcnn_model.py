@@ -75,8 +75,7 @@ if __name__ == '__main__':
     # Create model in inference
     model = modellib.MaskRCNN(mode="inference", config=config, model_dir=MODEL_DIR)
     # For now, we are just going to find the last weights file.
-    model_path = 'temp_data/mask_rcnn_building_0080.h5'
-    model.load_weights(model_path, by_name=True)
+    model.load_weights(MODEL_PATH, by_name=True)
 
     #
     # Note for Sebastian: I have no idea how well the rest of this code works...I haven't gotten far enough to
