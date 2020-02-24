@@ -5,6 +5,8 @@ import argparse
 from pathlib import Path
 import os
 
+import pandas as pd
+
 from mrcnn import utils
 import mrcnn.model as modellib
 
@@ -16,6 +18,8 @@ from utility import create_mrcnn_training_images_split
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('-df', '--dataframe', default=None,
+                        help='Pandas DataFrame containing the training and testing images.')
     parser.add_argument('-ip', '--image-path', default='temp_data',
                         help='The folder containing the image collections.')
     parser.add_argument('-c', '--collection', default='sample',
@@ -46,6 +50,7 @@ if __name__ == '__main__':
 
     # Temporary configuration variables will be contained here.  They will hopefully be updated to runtime
     # arguments once everything is working
+    DATA_FRAME = arguments['dataframe']
     IMAGE_PATH = arguments['image_path']
     TRAINING_COLLECTION = arguments['collection']
     VALIDATION_SIZE = float(arguments['validation'])
@@ -63,6 +68,7 @@ if __name__ == '__main__':
     print('Starting a Training Run of the Mask R-CNN Model...')
     print('')
     print('Parameters:')
+    print('          Data Frame: %s' % DATA_FRAME)
     print('          Image Path: %s' % IMAGE_PATH)
     print('          Collection: %s' % TRAINING_COLLECTION)
     print('     Validation Size: %s' % VALIDATION_SIZE)
@@ -88,8 +94,13 @@ if __name__ == '__main__':
         utils.download_trained_weights(COCO_MODEL_PATH)
 
     # Create a pandas array of training images.  Please note that this will perform a default 80/20 training
-    # and testing split.
-    training_images = create_mrcnn_training_images_split(IMAGE_PATH, TRAINING_COLLECTION, VALIDATION_SIZE)
+    # and testing split.  If we had a DATA_FRAME specified in the arguments call, then we will instead load
+    # that data frame.
+    if DATA_FRAME is not None:
+        training_images = pd.read_csv(DATA_FRAME)
+        pass
+    else:
+        training_images = create_mrcnn_training_images_split(IMAGE_PATH, TRAINING_COLLECTION, VALIDATION_SIZE)
     training_image_count = len(training_images[(training_images['validation'] == 0.0)])
     validation_image_count = len(training_images[(training_images['validation'] == 1.0)])
 

@@ -4,6 +4,8 @@
 import argparse
 import random
 
+import pandas as pd
+
 import mrcnn.model as modellib
 from mrcnn import visualize
 from mrcnn.model import log
@@ -17,6 +19,8 @@ from utility import create_mrcnn_training_images_split
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('-df', '--dataframe', default=None,
+                        help='Pandas DataFrame containing the training and testing images.')
     parser.add_argument('-mp', '--model-path', default='temp_data/mask_rcnn_building_0080.h5',
                         help='Path to the Mask R-CNN Model')
     parser.add_argument('-c', '--collection', default='sample_lg',
@@ -29,6 +33,7 @@ if __name__ == '__main__':
                         help='The number of random images to display')
     arguments = vars(parser.parse_args())
 
+    DATA_FRAME = arguments['dataframe']
     MODEL_PATH = arguments['model_path']
     IMAGE_PATH = arguments['image_path']
     COLLECTION = arguments['collection']
@@ -39,6 +44,7 @@ if __name__ == '__main__':
     print('Quick Testing RUN of Mask R-CNN Model...')
     print('')
     print('Parameters:')
+    print('      Data Frame: %s' % DATA_FRAME)
     print('      Model Path: %s' % MODEL_PATH)
     print('      Collection: %s' % COLLECTION)
     print('      Image Path: %s' % IMAGE_PATH)
@@ -52,8 +58,13 @@ if __name__ == '__main__':
     use_project_path()
 
     # Create a pandas array of training images.  Please note that this will perform a default 80/20 training
-    # and testing split.
-    training_images = create_mrcnn_training_images_split(IMAGE_PATH, COLLECTION, VALIDATION_SIZE)
+    # and testing split.  If we had a DATA_FRAME specified in the arguments call, then we will instead load
+    # that data frame.
+    if DATA_FRAME is not None:
+        training_images = pd.read_csv(DATA_FRAME)
+        pass
+    else:
+        training_images = create_mrcnn_training_images_split(IMAGE_PATH, TRAINING_COLLECTION, VALIDATION_SIZE)
     training_image_count = len(training_images[(training_images['validation'] == 0.0)])
     validation_image_count = len(training_images[(training_images['validation'] == 1.0)])
 
