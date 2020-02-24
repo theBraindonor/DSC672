@@ -31,6 +31,8 @@ if __name__ == '__main__':
                         help='The size of the validation set')
     parser.add_argument('-n', '--number', default=1,
                         help='The number of random images to display')
+    parser.add_argument('-rs', '--random-seed', default=112,
+                        help='Random seed for sample images.')
     arguments = vars(parser.parse_args())
 
     DATA_FRAME = arguments['dataframe']
@@ -39,6 +41,7 @@ if __name__ == '__main__':
     COLLECTION = arguments['collection']
     VALIDATION_SIZE = float(arguments['validation'])
     COUNT = int(arguments['number'])
+    RANDOM_SEED = int(arguments['random_seed'])
 
     print('')
     print('Quick Testing RUN of Mask R-CNN Model...')
@@ -50,6 +53,7 @@ if __name__ == '__main__':
     print('      Image Path: %s' % IMAGE_PATH)
     print(' Validation Size: %s' % VALIDATION_SIZE)
     print('           Count: %s' % COUNT)
+    print('     Random Seed: %s' % RANDOM_SEED)
     print('')
 
     MODEL_DIR = 'temp_data/logs'
@@ -93,11 +97,13 @@ if __name__ == '__main__':
     # test it out just yet.
     #
 
+    random.seed(RANDOM_SEED)
     for i in range(COUNT):
         # Test on a random image
         image_id = random.choice(dataset_val.image_ids)
 
         print("This is the image_ID", str(image_id)) #Find out which image is showing
+        print("Filename: %s" % dataset_val.get_image_filename(image_id))
         original_image, image_meta, gt_class_id, gt_bbox, gt_mask =\
             modellib.load_image_gt(dataset_val, config,
                                    image_id, use_mini_mask=False)

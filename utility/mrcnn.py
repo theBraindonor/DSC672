@@ -53,6 +53,15 @@ class MaskRCNNBuildingDataset(utils.Dataset):
             if (validation and row['validation'] == 1.0) or (not validation and row['validation'] == 0.0):
                 self.add_image("building", image_id=index, path=row['image'])
 
+    def get_image_filename(self, image_id):
+        """
+        Return the filename of a given image ID
+        :param image_id:
+        :return:
+        """
+        image = self.images_df.iloc[self.image_info[image_id]['id']]
+        return image['image']
+
     def load_mask(self, image_id):
         """
         Return the mask for the selected image.
