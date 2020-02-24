@@ -51,6 +51,7 @@ OSX installation does make use of both conda and pip.  Both GDAL and pytorch are
 > conda install pytorch torchvision -c pytorch-nightly
 > pip install pystac
 > pip install rio-tiler
+> pip install scikit-learn
 ```
 
 #### Mask R-CNN
