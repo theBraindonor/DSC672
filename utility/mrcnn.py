@@ -31,7 +31,7 @@ class MaskRCNNBuildingConfig(Config):
     IMAGE_MAX_DIM = 256
     STEPS_PER_EPOCH = 100  # TODO: Find a clean way to override this.  It's just getting replaced in code for now
     VALIDATION_STEPS = 10 # TODO: Find a clean way to override this.  It's just getting replaced in code for now
-    MEAN_PIXEL = np.array([123.7, 116.8, 103.9]) # TODO: Update with better means
+    MEAN_PIXEL = np.array([129.79, 129.95, 108.03]) # TODO: Update with better means
     USE_MINI_MASK = False  # Giving this a try...
     RPN_ANCHOR_SCALES = (16, 32, 64, 128, 256)  # Giving this a try...
 

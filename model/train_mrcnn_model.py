@@ -26,6 +26,8 @@ if __name__ == '__main__':
                         help='The image collection to load.')
     parser.add_argument('-v', '--validation', default=0.2,
                         help='The size of the validation set.')
+    parser.add_argument('-vs', '--validation-steps', default=None,
+                        help='The number of validation steps to perform each epoch')
     parser.add_argument('-b', '--batch-size', default=10,
                         help='The number of images to batch to the GPU.')
     parser.add_argument('-i', '--init-with', default='coco',
@@ -50,6 +52,9 @@ if __name__ == '__main__':
     IMAGE_PATH = arguments['image_path']
     TRAINING_COLLECTION = arguments['collection']
     VALIDATION_SIZE = float(arguments['validation'])
+    VALIDATION_STEPS = arguments['validation_steps']
+    if VALIDATION_STEPS is not None:
+        VALIDATION_STEPS = int(VALIDATION_STEPS)
     BATCH_SIZE = int(arguments['batch_size'])
     INITIALIZE_WITH = arguments['init_with']
     EPOCHS_HEAD = int(arguments['epochs_head'])
@@ -66,6 +71,7 @@ if __name__ == '__main__':
     print('          Image Path: %s' % IMAGE_PATH)
     print('          Collection: %s' % TRAINING_COLLECTION)
     print('     Validation Size: %s' % VALIDATION_SIZE)
+    print('    Validation Steps: %s' % VALIDATION_STEPS)
     print('          Batch Size: %s' % BATCH_SIZE)
     print('     Initialize With: %s' % INITIALIZE_WITH)
     print('         Epochs Head: %s' % EPOCHS_HEAD)
@@ -100,8 +106,11 @@ if __name__ == '__main__':
     config = MaskRCNNBuildingConfig()
     config.IMAGES_PER_GPU = BATCH_SIZE
     config.BATCH_SIZE = config.GPU_COUNT * config.IMAGES_PER_GPU
-    config.STEPS_PER_EPOCH = max(int(training_image_count / BATCH_SIZE), 20)
-    config.VALIDATION_STEPS = max(int(validation_image_count / BATCH_SIZE * 10), 4)
+    config.STEPS_PER_EPOCH = int(training_image_count / BATCH_SIZE)
+    if VALIDATION_STEPS is not None:
+        config.VALIDATION_STEPS = VALIDATION_STEPS
+    else:
+        config.VALIDATION_STEPS = int(validation_image_count / BATCH_SIZE)
     config.display()
 
     # Load the training image dataset.
@@ -128,7 +137,7 @@ if __name__ == '__main__':
                                     "mrcnn_bbox", "mrcnn_mask"])
     elif INITIALIZE_WITH == "last":
         # Load the last model you trained and continue training
-        model.load_weights(model.find_last()[0], by_name=True)
+        model.load_weights(model.find_last()[1], by_name=True)
 
     # Train the head branches
     # Passing layers="heads" freezes all layers except the head
