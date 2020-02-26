@@ -106,7 +106,7 @@ if __name__ == '__main__':
     config = MaskRCNNBuildingConfig()
     config.IMAGES_PER_GPU = BATCH_SIZE
     config.BATCH_SIZE = config.GPU_COUNT * config.IMAGES_PER_GPU
-    config.STEPS_PER_EPOCH = int(training_image_count / BATCH_SIZE)
+    config.STEPS_PER_EPOCH = int(training_image_count / (BATCH_SIZE * 10))
     if VALIDATION_STEPS is not None:
         config.VALIDATION_STEPS = VALIDATION_STEPS
     else:
