@@ -583,7 +583,10 @@ def save_image(image, image_name, boxes, masks, class_ids, scores, class_names, 
     masked_image = Image.fromarray(masked_image)
 
     if mode == 3:
-        masked_image.save(os.path.join(save_dir, '%s.png' % (image_name)))
+        masked_image = masked_image.convert('L')
+        #Convert Image to Binary
+        bw = masked_image.point(lambda x:0 if x<1 else 255, '1')
+        bw.save(os.path.join(save_dir, '%s.png' % (image_name)))
         return
 
     draw = ImageDraw.Draw(masked_image)
