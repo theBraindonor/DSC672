@@ -3,6 +3,8 @@
 
 import argparse
 import random
+import numpy as np
+import re
 
 import pandas as pd
 
@@ -92,35 +94,75 @@ if __name__ == '__main__':
     # For now, we are just going to find the last weights file.
     model.load_weights(MODEL_PATH, by_name=True)
 
-    #
-    # Note for Sebastian: I have no idea how well the rest of this code works...I haven't gotten far enough to
-    # test it out just yet.
-    #
+    # Turn this on true to test and see an image
+    show_test = False
 
-    random.seed(RANDOM_SEED)
-    for i in range(COUNT):
-        # Test on a random image
-        image_id = random.choice(dataset_val.image_ids)
+    if show_test == True:
+        random.seed(RANDOM_SEED)
+        for i in range(COUNT):
+            # Test on a random image
+            image_id = random.choice(dataset_val.image_ids)
 
-        print("This is the image_ID", str(image_id)) #Find out which image is showing
-        print("Filename: %s" % dataset_val.get_image_filename(image_id))
-        original_image, image_meta, gt_class_id, gt_bbox, gt_mask =\
-            modellib.load_image_gt(dataset_val, config,
-                                   image_id, use_mini_mask=False)
+            print("This is the image_ID", str(image_id)) #Find out which image is showing
+            print("Filename: %s" % dataset_val.get_image_filename(image_id))
+            original_image, image_meta, gt_class_id, gt_bbox, gt_mask =\
+                modellib.load_image_gt(dataset_val, config,
+                                       image_id, use_mini_mask=False)
 
-        log("original_image", original_image)
-        log("image_meta", image_meta)
-        log("gt_class_id", gt_class_id)
-        log("gt_bbox", gt_bbox)
-        log("gt_mask", gt_mask)
+            log("original_image", original_image)
+            log("image_meta", image_meta)
+            log("gt_class_id", gt_class_id)
+            log("gt_bbox", gt_bbox)
+            log("gt_mask", gt_mask)
 
-        #SHOW RANDOM IMAGE with MASK ON
-        visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id,
-                                    dataset_train.class_names, figsize=(8, 8))
+            #SHOW RANDOM IMAGE with MASK ON
+            visualize.display_instances(original_image, gt_bbox, gt_mask, gt_class_id,
+                                        dataset_train.class_names, figsize=(8, 8))
 
-        # DETECT MASK FOR RANDOM IMAGE
-        results = model.detect([original_image], verbose=1)
+            # DETECT MASK FOR RANDOM IMAGE
+            results = model.detect([original_image], verbose=1)
 
-        r = results[0]
-        visualize.display_instances(original_image, r['rois'], r['masks'], r['class_ids'],
-                                    dataset_val.class_names, r['scores'], figsize =(8,8))
+            r = results[0]
+            visualize.display_instances(original_image, r['rois'], r['masks'], r['class_ids'],
+                                        dataset_val.class_names, r['scores'], figsize =(8,8))
+
+
+    # Turn this to True if you want to output mask images
+    output = False
+
+    if output == True:
+        # Get Image outputs from MASK RCNN
+        dataset_val_images = len(dataset_val.image_ids)
+        for i in range(dataset_val_images):
+            # Get Image ID
+            image_id = i
+
+            # clean up image name for saving
+            image_name = dataset_val.get_image_filename(image_id)
+            image_name = image_name[:-4]
+            image_name = re.sub(r'.*256/', '', image_name)
+
+            original_image, image_meta, gt_class_id, gt_bbox, gt_mask = \
+                modellib.load_image_gt(dataset_val, config,
+                                       image_id, use_mini_mask=False)
+
+            log("original_image", original_image)
+            log("image_meta", image_meta)
+            log("gt_class_id", gt_class_id)
+            log("gt_bbox", gt_bbox)
+            log("gt_mask", gt_mask)
+
+            # DETECT MASK FOR  IMAGE
+            results = model.detect([original_image], verbose=1)
+
+            r = results[0]
+
+            # Function used to save mask predictions
+            # Mode 3 sets it to a black background with only mask segmentation
+            # creates an output directory for images to be saved in
+            visualize.save_image(original_image, image_name, r['rois'], r['masks'],
+                                 r['class_ids'], r['scores'], dataset_val.class_names,
+                                 filter_classs_names=['building'], scores_thresh=0.7, mode=3)
+
+
+
