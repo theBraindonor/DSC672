@@ -7,10 +7,15 @@ import numpy as np
 import re
 
 import pandas as pd
+import os
 
 import mrcnn.model as modellib
 from mrcnn import visualize
 from mrcnn.model import log
+
+
+from sklearn.metrics import jaccard_score # this needs to be installed for the environment
+import skimage
 
 from utility import use_project_path
 from utility import MaskRCNNBuildingConfig
@@ -23,7 +28,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-df', '--dataframe', default=None,
                         help='Pandas DataFrame containing the training and testing images.')
-    parser.add_argument('-mp', '--model-path', default='temp_data/mask_rcnn_building_0080.h5',
+    parser.add_argument('-mp', '--model-path', default='temp_data/logs/mask_rcnn_building_0080.h5',
                         help='Path to the Mask R-CNN Model')
     parser.add_argument('-c', '--collection', default='sample_lg',
                         help='The image collection to load')
@@ -128,18 +133,29 @@ if __name__ == '__main__':
 
 
     # Turn this to True if you want to output mask images
-    output = False
+    output = True
+
+    # Turn this on to get a Jaccard Score file output
+    Jscore = True
 
     if output == True:
         # Get Image outputs from MASK RCNN
         dataset_val_images = len(dataset_val.image_ids)
+
+        #If score is turned on, Create a Pandas DF to hold values and output CSV file after output is done
+        if Jscore == True:
+            Jvalues = [] # Hold Jaccard Score Values
+            fName = [] # Hold File Names
+
         for i in range(dataset_val_images):
             # Get Image ID
             image_id = i
 
             # clean up image name for saving
-            image_name = dataset_val.get_image_filename(image_id)
-            image_name = image_name[:-4]
+            temp = dataset_val.get_image_filename(image_id)
+            mask_name = re.sub(r'.tile-256','/mask-256',temp)
+            #image_name = dataset_val.get_image_filename(image_id)
+            image_name = temp[:-4]
             image_name = re.sub(r'.*256/', '', image_name)
 
             original_image, image_meta, gt_class_id, gt_bbox, gt_mask = \
@@ -164,5 +180,19 @@ if __name__ == '__main__':
                                  r['class_ids'], r['scores'], dataset_val.class_names,
                                  filter_classs_names=['building'], scores_thresh=0.7, mode=3)
 
+            # If turned on, get score of pred and ground truth
+            if Jscore == True:
+                actual_mask = skimage.io.imread(os.path.join(mask_name))
+                pred_mask = skimage.io.imread(os.path.join("output/",str(image_name + ".png")))
+                Jvalues.append((jaccard_score(actual_mask, pred_mask, average='micro')))
+                fName.append(temp)
+
+        # Output CSV file
+        if Jscore == True:
+            JaccardDF = pd.DataFrame()
+            JaccardDF['File_Name'] = pd.Series(fName)
+            JaccardDF['Scores'] = pd.Series(Jvalues)
+            output_file = os.path.join("temp_data", 'MaskRCNN_Scores.csv')
+            JaccardDF.to_csv(output_file, index=False, header=True)
 
 
