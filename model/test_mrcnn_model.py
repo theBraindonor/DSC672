@@ -147,7 +147,7 @@ if __name__ == '__main__':
             Jvalues = [] # Hold Jaccard Score Values
             fName = [] # Hold File Names
 
-        for i in range(25):#dataset_val_images
+        for i in range(dataset_val_images):
             # Get Image ID
             image_id = i
 
