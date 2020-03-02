@@ -28,7 +28,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-df', '--dataframe', default=None,
                         help='Pandas DataFrame containing the training and testing images.')
-    parser.add_argument('-mp', '--model-path', default='temp_data/logs/mask_rcnn_building_0080.h5',
+    parser.add_argument('-mp', '--model-path', default='temp_data/logs/mask_rcnn_building_0040.h5',
                         help='Path to the Mask R-CNN Model')
     parser.add_argument('-c', '--collection', default='sample_lg',
                         help='The image collection to load')
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             Jvalues = [] # Hold Jaccard Score Values
             fName = [] # Hold File Names
 
-        for i in range(dataset_val_images):
+        for i in range(25):#dataset_val_images
             # Get Image ID
             image_id = i
 
@@ -184,8 +184,21 @@ if __name__ == '__main__':
             if Jscore == True:
                 actual_mask = skimage.io.imread(os.path.join(mask_name))
                 pred_mask = skimage.io.imread(os.path.join("output/",str(image_name + ".png")))
-                Jvalues.append((jaccard_score(actual_mask, pred_mask, average='micro')))
+                Jaccard = (jaccard_score(actual_mask, pred_mask, average='micro'))
                 fName.append(temp)
+
+                # Zero Division Check
+                if Jaccard == 0:
+                    print(gt_mask.shape)
+                    print(r['masks'].shape)
+                    # Check to see if mask has any buildings and predicted mask has buildings
+                    # if niether have buildings consider this a 1
+                    #r['masks] shape has to be (0,28,28) due to mask shape output
+                    if gt_mask.shape == (256,256,0) and r['masks'].shape == (0,28,28):
+                        Jaccard = 1
+
+                Jvalues.append(Jaccard)
+
 
         # Output CSV file
         if Jscore == True:
