@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+from pathlib import Path
 import random
 import numpy as np
 import re
@@ -139,8 +140,10 @@ if __name__ == '__main__':
     Jscore = True
 
     if output == True:
+        Path('temp_data/maskrcnn_output').mkdir(parents=True, exist_ok=True)
         # Get Image outputs from MASK RCNN
         dataset_val_images = len(dataset_val.image_ids)
+        dataset_val_images = 10
 
         #If score is turned on, Create a Pandas DF to hold values and output CSV file after output is done
         if Jscore == True:
@@ -153,6 +156,8 @@ if __name__ == '__main__':
 
             # clean up image name for saving
             temp = dataset_val.get_image_filename(image_id)
+            print('Processing file: %s' % temp)
+            print('File %s of %s' % (i + 1, dataset_val_images))
             mask_name = re.sub(r'.tile-256','/mask-256',temp)
             #image_name = dataset_val.get_image_filename(image_id)
             image_name = temp[:-4]
@@ -178,12 +183,13 @@ if __name__ == '__main__':
             # creates an output directory for images to be saved in
             visualize.save_image(original_image, image_name, r['rois'], r['masks'],
                                  r['class_ids'], r['scores'], dataset_val.class_names,
-                                 filter_classs_names=['building'], scores_thresh=0.7, mode=3)
+                                 filter_classs_names=['building'], scores_thresh=0.7, mode=3,
+                                 save_dir='temp_data/maskrcnn_output/')
 
             # If turned on, get score of pred and ground truth
             if Jscore == True:
                 actual_mask = skimage.io.imread(os.path.join(mask_name))
-                pred_mask = skimage.io.imread(os.path.join("output/",str(image_name + ".png")))
+                pred_mask = skimage.io.imread(os.path.join("temp_data/maskrcnn_output/",str(image_name + ".png")))
                 Jaccard = (jaccard_score(actual_mask, pred_mask, average='micro'))
                 fName.append(temp)
 
@@ -197,6 +203,7 @@ if __name__ == '__main__':
                     if gt_mask.shape == (256,256,0) and r['masks'].shape == (0,28,28):
                         Jaccard = 1
 
+                print('Score: %s' % Jaccard)
                 Jvalues.append(Jaccard)
 
 
