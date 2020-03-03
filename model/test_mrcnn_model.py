@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-df', '--dataframe', default=None,
                         help='Pandas DataFrame containing the training and testing images.')
-    parser.add_argument('-mp', '--model-path', default='temp_data/logs/mask_rcnn_building_0040.h5',
+    parser.add_argument('-mp', '--model-path', default='temp_data/mask_rcnn_building_0040_v3.h5',
                         help='Path to the Mask R-CNN Model')
     parser.add_argument('-c', '--collection', default='sample_lg',
                         help='The image collection to load')
@@ -41,6 +41,12 @@ if __name__ == '__main__':
                         help='The number of random images to display')
     parser.add_argument('-rs', '--random-seed', default=112,
                         help='Random seed for sample images.')
+    parser.add_argument('-t', '--type', default='score',
+                        help='The kind of test to run, demo/score/predict')
+    parser.add_argument('-th', '--threshold', default=0.9,
+                        help='The threshold to use in predictions')
+    parser.add_argument('-o', '--output', default='temp_data/maskrcnn_output',
+                        help='Output folder for binary segmentation images')
     arguments = vars(parser.parse_args())
 
     DATA_FRAME = arguments['dataframe']
@@ -50,6 +56,9 @@ if __name__ == '__main__':
     VALIDATION_SIZE = float(arguments['validation'])
     COUNT = int(arguments['number'])
     RANDOM_SEED = int(arguments['random_seed'])
+    TYPE = arguments['type']
+    THRESHOLD = float(arguments['threshold'])
+    OUTPUT = arguments['output']
 
     print('')
     print('Quick Testing RUN of Mask R-CNN Model...')
@@ -62,6 +71,9 @@ if __name__ == '__main__':
     print(' Validation Size: %s' % VALIDATION_SIZE)
     print('           Count: %s' % COUNT)
     print('     Random Seed: %s' % RANDOM_SEED)
+    print('       Test Type: %s' % TYPE)
+    print('       Threshold: %s' % THRESHOLD)
+    print('     Output Path: %s' % OUTPUT)
     print('')
 
     MODEL_DIR = 'temp_data/logs'
@@ -76,13 +88,14 @@ if __name__ == '__main__':
         training_images = pd.read_csv(DATA_FRAME)
         pass
     else:
-        training_images = create_mrcnn_training_images_split(IMAGE_PATH, TRAINING_COLLECTION, VALIDATION_SIZE)
+        training_images = create_mrcnn_training_images_split(IMAGE_PATH, COLLECTION, VALIDATION_SIZE)
     training_image_count = len(training_images[(training_images['validation'] == 0.0)])
     validation_image_count = len(training_images[(training_images['validation'] == 1.0)])
 
     # Create the mrcnn configuration object.  We are adjusting everything to understand batch size and using
     # the training and validation lengths as read back in from the pandas dataframe
     config = MaskRCNNBuildingConfig()
+    config.DETECTION_MIN_CONFIDENCE = THRESHOLD
     config.display()
 
     # Load the training image dataset.
@@ -100,10 +113,8 @@ if __name__ == '__main__':
     # For now, we are just going to find the last weights file.
     model.load_weights(MODEL_PATH, by_name=True)
 
-    # Turn this on true to test and see an image
-    show_test = False
-
-    if show_test == True:
+    # Demonstrate the model by showing the original image and the generated bounding boxes and mask.
+    if TYPE == 'demo':
         random.seed(RANDOM_SEED)
         for i in range(COUNT):
             # Test on a random image
@@ -132,20 +143,14 @@ if __name__ == '__main__':
             visualize.display_instances(original_image, r['rois'], r['masks'], r['class_ids'],
                                         dataset_val.class_names, r['scores'], figsize =(8,8))
 
-
-    # Turn this to True if you want to output mask images
-    output = True
-
-    # Turn this on to get a Jaccard Score file output
-    Jscore = True
-
-    if output == True:
-        Path('temp_data/maskrcnn_output').mkdir(parents=True, exist_ok=True)
+    if TYPE == 'score' or TYPE == 'predict':
+        Path(OUTPUT).mkdir(parents=True, exist_ok=True)
         # Get Image outputs from MASK RCNN
         dataset_val_images = len(dataset_val.image_ids)
+        dataset_val_images = 10
 
-        #If score is turned on, Create a Pandas DF to hold values and output CSV file after output is done
-        if Jscore == True:
+        #Create a Pandas DF to hold values and output CSV file after output is done
+        if TYPE == 'score':
             Jvalues = [] # Hold Jaccard Score Values
             fName = [] # Hold File Names
 
@@ -183,12 +188,12 @@ if __name__ == '__main__':
             visualize.save_image(original_image, image_name, r['rois'], r['masks'],
                                  r['class_ids'], r['scores'], dataset_val.class_names,
                                  filter_classs_names=['building'], scores_thresh=0.7, mode=3,
-                                 save_dir='temp_data/maskrcnn_output/')
+                                 save_dir=OUTPUT)
 
             # If turned on, get score of pred and ground truth
-            if Jscore == True:
+            if TYPE == 'score':
                 actual_mask = skimage.io.imread(os.path.join(mask_name))
-                pred_mask = skimage.io.imread(os.path.join("temp_data/maskrcnn_output/",str(image_name + ".png")))
+                pred_mask = skimage.io.imread(os.path.join(OUTPUT,str(image_name + ".png")))
                 Jaccard = (jaccard_score(actual_mask, pred_mask, average='micro'))
                 fName.append(temp)
 
@@ -207,11 +212,15 @@ if __name__ == '__main__':
 
 
         # Output CSV file
-        if Jscore == True:
+        if TYPE == 'score':
             JaccardDF = pd.DataFrame()
             JaccardDF['File_Name'] = pd.Series(fName)
             JaccardDF['Scores'] = pd.Series(Jvalues)
             output_file = os.path.join("temp_data", 'MaskRCNN_Scores.csv')
             JaccardDF.to_csv(output_file, index=False, header=True)
 
+            # Output mean score
+            print('')
+            print('Mean Jaccard Score: %s' % np.mean(Jvalues))
+            print('')
 

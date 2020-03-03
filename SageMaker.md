@@ -53,6 +53,7 @@ conda env export > environment.yml
 conda env create -f environment.yml --prefix ./DSC672/mrcnn_venv
 conda activate /home/ec2-user/SageMaker/DSC672/mrcnn_venv
 conda install -c conda-forge scikit-image
+conda install -c conda-forge scikit-learn
 ```
 
 ### Restart Configuration
