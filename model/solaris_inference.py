@@ -97,4 +97,4 @@ if __name__ == '__main__':
     use_project_path()
 
     # run predictions for submission
-    submission_predictions(0.8)
+    submission_predictions(0.85)
