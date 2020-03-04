@@ -147,7 +147,6 @@ if __name__ == '__main__':
         Path(OUTPUT).mkdir(parents=True, exist_ok=True)
         # Get Image outputs from MASK RCNN
         dataset_val_images = len(dataset_val.image_ids)
-        dataset_val_images = 10
 
         #Create a Pandas DF to hold values and output CSV file after output is done
         if TYPE == 'score':
