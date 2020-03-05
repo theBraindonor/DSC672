@@ -152,6 +152,9 @@ if __name__ == '__main__':
         if TYPE == 'score':
             Jvalues = [] # Hold Jaccard Score Values
             fName = [] # Hold File Names
+            mask_intersection_pixels = []
+            actual_mask_pixels = []
+            pred_mask_pixels = []
 
         for i in range(dataset_val_images):
             # Get Image ID
@@ -196,6 +199,11 @@ if __name__ == '__main__':
                 Jaccard = (jaccard_score(actual_mask, pred_mask, average='micro'))
                 fName.append(temp)
 
+                # Grab the needed pixel counts for a global jaccard score.
+                actual_mask_pixels.append(np.sum(actual_mask > 0))
+                pred_mask_pixels.append(np.sum(pred_mask > 0))
+                mask_intersection_pixels.append(np.sum(np.logical_and(actual_mask > 0, pred_mask > 0)))
+
                 # Zero Division Check
                 if Jaccard == 0:
                     print(gt_mask.shape)
@@ -215,11 +223,19 @@ if __name__ == '__main__':
             JaccardDF = pd.DataFrame()
             JaccardDF['File_Name'] = pd.Series(fName)
             JaccardDF['Scores'] = pd.Series(Jvalues)
+            JaccardDF['IntersectionPixels'] = pd.Series(mask_intersection_pixels)
+            JaccardDF['ActualMaskPixels'] = pd.Series(actual_mask_pixels)
+            JaccardDF['PredMaskPixels'] = pd.Series(pred_mask_pixels)
             output_file = os.path.join("temp_data", 'MaskRCNN_Scores.csv')
             JaccardDF.to_csv(output_file, index=False, header=True)
 
+            # Global Jaccard score is the sum of intersected pixels over the sum of unioned pixels from each tile.
+            global_jaccard = np.sum(mask_intersection_pixels) / \
+                             (np.sum(actual_mask_pixels) + np.sum(pred_mask_pixels) - np.sum(mask_intersection_pixels))
+
             # Output mean score
             print('')
-            print('Mean Jaccard Score: %s' % np.mean(Jvalues))
+            print('  Mean Jaccard Score: %s' % np.mean(Jvalues))
+            print('Global Jaccard Score: %s' % global_jaccard)
             print('')
 
