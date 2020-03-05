@@ -1,4 +1,4 @@
-batch_size: 10
+batch_size: 8
 data_specs:
   channels: 4
   data_workers: null
@@ -11,11 +11,11 @@ data_specs:
   rescale: false
   rescale_maxima: auto
   rescale_minima: auto
-  val_holdout_frac: 0.3
+  val_holdout_frac: 0.2
   width: 256
 infer: true
 inference:
-  output_dir: temp_data/temp_test/inference_out/
+  output_dir: temp_data/inference_out/
   window_step_size_x: null
   window_step_size_y: null
 inference_augmentation:
@@ -26,16 +26,16 @@ inference_augmentation:
     Normalize:
       max_pixel_value: 255.0
       mean:
-      - 0.4752724392821736
-      - 0.47921707418377035
-      - 0.4066859953361776
+      - 0.4849550349291633
+      - 0.485635239909677
+      - 0.4044555221912907
       p: 1.0
       std:
-      - 0.20380653575313712
-      - 0.19179939205042276
-      - 0.20130653782646712
+      - 0.19496345243155164
+      - 0.18244518105697646
+      - 0.1934076933773876
   p: 1.0
-inference_data_csv: temp_data/solaris_inference_file.csv
+inference_data_csv: temp_data/run1_solaris_inference_file.csv
 model_name: xdxd_spacenet4
 model_path: null
 nn_framework: torch
@@ -44,10 +44,10 @@ train: true
 training:
   callbacks:
     model_checkpoint:
-      filepath: temp_data/xdxd_samp_best.pth
+      filepath: temp_data/xdxd_fix_best.pth
       monitor: val_loss
   checkpoint_frequency: 10
-  epochs: 60
+  epochs: 40
   loss:
     bcewithlogits: null
     jaccard: null
@@ -58,7 +58,7 @@ training:
   metrics:
     training: null
     validation: null
-  model_dest_path: temp_data/sampling.pth
+  model_dest_path: temp_data/xdxd_fix_best_epoch32_2.4549999237060547.pth
   opt_args: null
   optimizer: Adam
   steps_per_epoch: null
@@ -68,35 +68,47 @@ training_augmentation:
     DropChannel:
       axis: 2
       idx: 3
+    HorizontalFlip:
+      p: 0.5
     Normalize:
       max_pixel_value: 255.0
       mean:
-      - 0.4752724392821736
-      - 0.47921707418377035
-      - 0.4066859953361776
+      - 0.4849550349291633
+      - 0.485635239909677
+      - 0.4044555221912907
       p: 1.0
       std:
-      - 0.20380653575313712
-      - 0.19179939205042276
-      - 0.20130653782646712
+      - 0.19496345243155164
+      - 0.18244518105697646
+      - 0.1934076933773876
+    RandomCrop:
+      height: 256
+      p: 1.0
+      width: 256
+    RandomRotate90:
+      p: 0.5
   p: 1.0
   shuffle: true
-training_data_csv: temp_data/solaris_training_file.csv
+training_data_csv: temp_data/run1_solaris_training_file.csv
 validation_augmentation:
   augmentations:
+    CenterCrop:
+      height: 256
+      p: 1.0
+      width: 256
     DropChannel:
       axis: 2
       idx: 3
     Normalize:
       max_pixel_value: 255.0
       mean:
-      - 0.4752724392821736
-      - 0.47921707418377035
-      - 0.4066859953361776
+      - 0.4849550349291633
+      - 0.485635239909677
+      - 0.4044555221912907
       p: 1.0
       std:
-      - 0.20380653575313712
-      - 0.19179939205042276
-      - 0.20130653782646712
+      - 0.19496345243155164
+      - 0.18244518105697646
+      - 0.1934076933773876
   p: 1.0
 validation_data_csv: null

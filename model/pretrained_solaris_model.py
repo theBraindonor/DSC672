@@ -204,29 +204,109 @@ def avg_jaccard_index(train_collection):
 
     return avg_jaccard
 
+def avg_jaccard_index2(threshold=0.7):
+    scores = []
+    img_ids = []
+    missing_ids = []
+    ims_df = pd.read_csv('temp_data\\run1_solaris_inference_file.csv')
+    ims = ims_df['image'].to_list()
+    for im in ims:
+        try:
+            file_base = os.path.basename(im)
+            split_list = im.split('/')
+            actual_mask = skimage.io.imread(os.path.join(split_list[0], split_list[1], 'mask-256', split_list[3]))
+            continuous_pred = skimage.io.imread(os.path.join('temp_data\\inference_out', file_base))
+            continuous_pred = continuous_pred - continuous_pred.min()
+            continuous_pred = continuous_pred / continuous_pred.max()
+            inferred_vectors = sol.vector.mask.mask_to_poly_geojson(continuous_pred, bg_threshold=threshold)
+            src_img_path = im
+            binary_pred = sol.vector.mask.footprint_mask(inferred_vectors, reference_im=src_img_path)
+            scores.append(jaccard_score(actual_mask, binary_pred, average='micro'))
+            img_ids.append(im)
+        except:
+            print(im)
+            missing_ids.append(im)
+    avg_jaccard = sum(scores) / len(scores)
+    scores_df = pd.DataFrame(list(zip(img_ids, scores)), columns=['Image_ID', 'Score'])
+    scores = np.array(scores)
+    plt.hist(scores, bins=10)
+    plt.title('Jaccard Index Histogram\n' + 'Average = ' + str(round(avg_jaccard,3)))
+    plt.xlabel('Values')
+    plt.ylabel('Count')
+    plt.show()
+
+    return avg_jaccard, scores_df, missing_ids
+
+def create_train_csv(train_set, inference_set):
+    """
+    Function to create the train CSV files for solaris.
+    Options for train_set and inference_set include:
+    sample, tier1, tier2, test
+    The set names should be passed as a string with quotes
+    """
+
+    if inference_set == 'test':
+
+        file_array = np.rot90(np.array([
+            [filename for filename in glob.iglob('temp_data/%s/tile-256/**/*.png' % train_set, recursive=True)],
+            [filename for filename in glob.iglob('temp_data/%s/mask-256/**/*.png' % train_set, recursive=True)],
+        ]))
+
+        training_df = pd.DataFrame(file_array, columns=['image', 'label'])
+        training_df.to_csv('temp_data/solaris_training_file.csv', index=False)
+
+        file_array = np.rot90(np.array([
+            [filename for filename in glob.iglob('temp_data/temp_test/resize/*.png', recursive=True)],
+        ]))
+
+        testing_df = pd.DataFrame(file_array, columns=['image'])
+        testing_df.to_csv('temp_data/solaris_inference_file.csv', index=False)
+
+    else:
+
+        file_array = np.rot90(np.array([
+            [filename for filename in glob.iglob('temp_data/%s/tile-256/**/*.png' % train_set, recursive=True)],
+            [filename for filename in glob.iglob('temp_data/%s/mask-256/**/*.png' % train_set, recursive=True)],
+        ]))
+
+        training_df = pd.DataFrame(file_array, columns=['image', 'label'])
+        training_df.to_csv('temp_data/solaris_training_file.csv', index=False)
+
+        file_array = np.rot90(np.array([
+            [filename for filename in glob.iglob('temp_data/%s/tile-256/**/*.png' % train_set, recursive=True)]
+        ]))
+
+        testing_df = pd.DataFrame(file_array, columns=['image'])
+        testing_df.to_csv('temp_data/solaris_inference_file.csv', index=False)
+
+        return training_df['image'].to_list()
+
 
 if __name__ == '__main__':
     use_project_path()
 
     # Create a training file sampled from tier1 and tier2
-    image_list = sample_train_csv(tier1_pct=0.6, tier2_pct=0.25, random_state=4)
+    #image_list = sample_train_csv(tier1_pct=0.01, tier2_pct=0.02, random_state=2)
+
+    #training_df = pd.read_csv('temp_data/run1_solaris_training_file.csv')
+    #image_list = training_df['image'].to_list()
 
     # Update the mean and standard dev pixel value in the yml file
-    avg_pix, sd_pix = get_tile_mean_sd(image_list)
-    print(avg_pix)
-    print(sd_pix)
+    #avg_pix, sd_pix = get_tile_mean_sd(image_list)
+    #print(avg_pix)
+    #print(sd_pix)
 
     # Parse the yaml file into a dictionary
     config = sol.utils.config.parse('config/xdxd_spacenet4.yml')
 
     # Create the trainer and then kick off the training according to the config file settings
     # skip this if not training
-    trainer = sol.nets.train.Trainer(config)
+    #trainer = sol.nets.train.Trainer(config)
 
-    start = time.time()
-    trainer.train()
-    end = time.time()
-    print('{} minutes'.format(round((end - start) / 60, 2)))
+    #start = time.time()
+    #trainer.train()
+    #end = time.time()
+    #print('{} minutes'.format(round((end - start) / 60, 2)))
 
     # make predictions using the model
     #inferer = sol.nets.infer.Inferer(config)
@@ -236,4 +316,9 @@ if __name__ == '__main__':
     # display a sample image from the training set
     #display_train_sample('nia_825a50_107_265064_242184_19.png', threshold=.6)
 
-    #avg_score = avg_jaccard_index(train_collection)
+    threshold = 0.7
+    avg_score, scores_df, missing_ids = avg_jaccard_index2(threshold)
+    scores_df.to_csv('run1_solaris_scores_' + str(threshold) + '.csv', index=False)
+    print(avg_score)
+    print(scores_df.head())
+    print(missing_ids)
