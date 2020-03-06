@@ -239,3 +239,44 @@ if __name__ == '__main__':
             print('Global Jaccard Score: %s' % global_jaccard)
             print('')
 
+    # Turn this on if you want to run submission for Test set:
+    submit_Pred = False
+    if submit_Pred == True:
+        Path('raw_source_data/maskrcnn_output').mkdir(parents=True, exist_ok=True)
+
+        ims = [f for f in os.listdir('raw_source_data/%s/tile-256' % "test")]
+        x = 0
+        for im in ims:
+            x += 1
+            print(im)
+            # print(x)
+            if im == ".DS_Store":  # MAC Error Ignore this
+                print("Ignore")
+            else:
+                t_image = skimage.io.imread(os.path.join('raw_source_data/%s/tile-256/' % 'test', im))
+
+                im = im[:-4]
+                # Remove Alpha Channel
+                t_image = t_image[:, :, :3]
+                results = model.detect([t_image], verbose=1)
+                r = results[0]
+
+                visualize.save_image(t_image, im, r['rois'], r['masks'],
+                                     r['class_ids'], r['scores'], dataset_val.class_names,
+                                     filter_classs_names=['building'], scores_thresh=0.7, mode=3,
+                                     save_dir='raw_source_data/maskrcnn_output/')
+
+        print("Converting to .TIFF")
+        # Re size images and save as TIFF for submission
+        ims = [f for f in os.listdir('raw_source_data/maskrcnn_output')]
+        Path('raw_source_data/submission').mkdir(parents=True, exist_ok=True)
+        for im in ims:
+            if im == ".DS_Store":  # Mac Error
+                print("Ignore")
+            else:
+                p_image = skimage.io.imread(os.path.join('raw_source_data/maskrcnn_output/', im))
+                p_image = Image.fromarray(p_image)
+                p_image = p_image.resize((1024, 1024))
+                im = im[:-4]  # remove extension
+                submission_file = os.path.join('raw_source_data/submission/', im + ".TIFF")
+                p_image.save(submission_file)
