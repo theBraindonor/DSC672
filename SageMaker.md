@@ -63,5 +63,22 @@ When an instance is restarted that has been configured for the Mask R-CNN model,
 ```
 echo ". /home/ec2-user/anaconda3/etc/profile.d/conda.sh" >> ~/.bashrc
 source ~/.bashrc
-conda activate /home/ec2-user/SageMaker/DSC672/mrcnn_venv
+source ~/SageMaker/DSC672/mrcnn_venv/bin/activate
 ```
+
+### Quick Script to Run Sample Training
+
+```
+echo ". /home/ec2-user/anaconda3/etc/profile.d/conda.sh" >> ~/.bashrc
+source ~/.bashrc
+cd SageMaker/DSC672
+source ./venv/bin/activate
+python -m prepare.extract_training_images -ts sample_source_data/sample -ds temp_data/sample -s 256 -z 19
+python -m prepare.create_training_testing_split -c sample -p sample -n 160 -s 0.25 -a y
+deactivate
+source ./mrcnn_venv/bin/activate
+python -m model.train_mrcnn_model -df temp_data/sample_mask_rcnn_training_testing.csv -s 80 -vs 10 -eh 4 -er 2 -ea 2
+# you need to copy the last h5 out of the temp_data/logs/building* directory
+python -m model.test_mrcnn_model -df temp_data/sample_mask_rcnn_training_testing.csv -mp temp_data/mask_rcnn_building_0080_v4.h5 -t score -th 0.9
+```
+python -m model.train_mrcnn_model -df temp_data/contest_mask_rcnn_training_testing.csv -eh 40 -er 20 -ea 20

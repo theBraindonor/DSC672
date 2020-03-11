@@ -14,9 +14,9 @@ import mrcnn.model as modellib
 from mrcnn import visualize
 from mrcnn.model import log
 
-
 from sklearn.metrics import jaccard_score # this needs to be installed for the environment
 import skimage
+from PIL import Image
 
 from utility import use_project_path
 from utility import MaskRCNNBuildingConfig

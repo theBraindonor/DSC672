@@ -28,8 +28,8 @@ if __name__ == '__main__':
                         help='The size of the validation set.')
     parser.add_argument('-vs', '--validation-steps', default=None,
                         help='The number of validation steps to perform each epoch')
-    parser.add_argument('-b', '--batch-size', default=10,
-                        help='The number of images to batch to the GPU.')
+    parser.add_argument('-s', '--steps', default=1000,
+                        help='The number of steps to batch to the GPU.')
     parser.add_argument('-i', '--init-with', default='coco',
                         help='How to initialize the model for training.')
     parser.add_argument('-eh', '--epochs-head', default=1,
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     VALIDATION_STEPS = arguments['validation_steps']
     if VALIDATION_STEPS is not None:
         VALIDATION_STEPS = int(VALIDATION_STEPS)
-    BATCH_SIZE = int(arguments['batch_size'])
+    STEPS = int(arguments['steps'])
     INITIALIZE_WITH = arguments['init_with']
     EPOCHS_HEAD = int(arguments['epochs_head'])
     EPOCHS_RESNET = int(arguments['epochs_resnet'])
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     print('          Collection: %s' % TRAINING_COLLECTION)
     print('     Validation Size: %s' % VALIDATION_SIZE)
     print('    Validation Steps: %s' % VALIDATION_STEPS)
-    print('          Batch Size: %s' % BATCH_SIZE)
+    print('               Steps: %s' % STEPS)
     print('     Initialize With: %s' % INITIALIZE_WITH)
     print('         Epochs Head: %s' % EPOCHS_HEAD)
     print('       Epochs ResNet: %s' % EPOCHS_RESNET)
@@ -104,13 +104,13 @@ if __name__ == '__main__':
 
     # Create the mrcnn configuration object and update with command line variables.
     config = MaskRCNNBuildingConfig()
-    config.IMAGES_PER_GPU = BATCH_SIZE
+    config.IMAGES_PER_GPU = 2
     config.BATCH_SIZE = config.GPU_COUNT * config.IMAGES_PER_GPU
-    config.STEPS_PER_EPOCH = int(training_image_count / (BATCH_SIZE * 10))
+    config.STEPS_PER_EPOCH = int(STEPS)
     if VALIDATION_STEPS is not None:
         config.VALIDATION_STEPS = VALIDATION_STEPS
     else:
-        config.VALIDATION_STEPS = int(validation_image_count / BATCH_SIZE)
+        config.VALIDATION_STEPS = int(STEPS / 10)
     config.display()
 
     # Load the training image dataset.

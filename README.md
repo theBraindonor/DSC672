@@ -71,10 +71,8 @@ Please refer to the [SageMaker Guide](SageMaker.md) for details on installing th
 Some sample data is included in this repository so that configuration can be quickly checked _without_ having to download the full training and testing data files.  Simply run the following command from the Python virtual environment:
 
 ```
-> python -m prepare.extract_training_images
+> python -m prepare.extract_training_images -ts sample_source_data/sample -ds temp_data/sample -s 256 -z 19
 ```
-
-The `prepare/extract_training_images.py` file can also be run within a Python IDE directly.
 
 ## Downloading Real Project Data
 The data used for this project is too large to be included directly in this repository.  It is hosted in Amazon S3 by Driven Data.  The following files should be downloaded and extracted into the `raw_source_data` directory.
@@ -110,10 +108,35 @@ The testing data can be prepared using the following command:
 
 _Please note: Preparing the data will take a significant amount of time._
 
+## Sample Training Dataset Creation
+
+```
+> python -m prepare.create_training_testing_split -c sample -p sample -n 160 -s 0.25 -a y
+```
+
+## Real Training Dataset Creation
+
+```
+> python -m prepare.create_training_testing_split -c tier1,tier1_lg,tier2 -p tier1and2 -n 40000 -s 0.2 -a y
+> python -m prepare.create_training_testing_split -c tier1,tier2_lg -p tier1only -n 40000 -s 0.05 -a y
+```
+
+_Please note: When creating these datasets, the mean and standard deviation of the pixels are being calculated.  This is an expensive process that may take a significant amount of time._
+
+## Exploring the Sample Training Dataset
+
+## Exploring the Sample Training Datasets
+
+the notebook `explore/sample_exploration.ipynb` can be run to perform a quick analysis on the sample training dataset.
+
+## Exploring the Real Training Datasets
+
+The notebook `explore/training_testing_exploration.ipynb` can be run to perform a quick analysis on the tier1and2 training dataset.
+
 ## License and Attribution
 
 The following project includes source code and examples from the following projects:
 
-### Solaris
+### [Solaris](https://github.com/CosmiQ/solaris)
 
-### Mask R-CNN
+### [Mask R-CNN](https://github.com/matterport/Mask_RCNN)
