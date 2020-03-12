@@ -72,7 +72,7 @@ source ~/SageMaker/DSC672/mrcnn_venv/bin/activate
 echo ". /home/ec2-user/anaconda3/etc/profile.d/conda.sh" >> ~/.bashrc
 source ~/.bashrc
 cd SageMaker/DSC672
-source ./venv/bin/activate
+conda activate ./venv
 python -m prepare.extract_training_images -ts sample_source_data/sample -ds temp_data/sample -s 256 -z 19
 python -m prepare.create_training_testing_split -c sample -p sample -n 160 -s 0.25 -a y
 deactivate
