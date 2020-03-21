@@ -81,4 +81,3 @@ python -m model.train_mrcnn_model -df temp_data/sample_mask_rcnn_training_testin
 # you need to copy the last h5 out of the temp_data/logs/building* directory
 python -m model.test_mrcnn_model -df temp_data/sample_mask_rcnn_training_testing.csv -mp temp_data/mask_rcnn_building_0080_v4.h5 -t score -th 0.9
 ```
-python -m model.train_mrcnn_model -df temp_data/contest_mask_rcnn_training_testing.csv -eh 40 -er 20 -ea 20

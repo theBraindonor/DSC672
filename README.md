@@ -5,6 +5,10 @@ Authors:
 * Brian Pirlot
 * Sebastian Zdarowski
 
+This project was undertaken as a capstone for the Masters in Data Science program at DePaul University in Chicago.  The project was conducted over a period of 10 weeks.  Please see the included `DSC672_Group4_ProjectPresentation.pdf`, `DSC672_Group4_ProjectPaper.pdf`, and `DSC672_Group4_ProjectSupplement.pdf` for additional information.
+
+This repository is intended to demonstrate the machine learning code that was developed for this capstone.  This was the live repository that was used for collaboration and cloud deployment.
+
 ## Initial Configuration
 
 This project makes use of two independant Python virtual environments. One for [Solaris](https://github.com/CosmiQ/solaris) and one for [Mask R-CNN](https://github.com/matterport/Mask_RCNN).  These environments have not been unified due to the steps necessary to install Solaris.  The package and some of its dependencies are new enough that they are not yet fully stable in pip and conda.
@@ -116,22 +120,96 @@ _Please note: Preparing the data will take a significant amount of time._
 
 ## Real Training Dataset Creation
 
+The following command will create a pair of datasets.  The first dataset is intended to compare Solaris to Mask RCNN and includes data from both tier 1 and tier 2.  This dataset has an 80/20 training and testing split.
+
+The second dataset is intended for content submission and includes data from tier 1 only.  This dataset has a 95/5 training and testing split.  The testing split is intended only to tune the thresholding for final contest submission.
+
 ```
-> python -m prepare.create_training_testing_split -c tier1,tier1_lg,tier2 -p tier1and2 -n 40000 -s 0.2 -a y
-> python -m prepare.create_training_testing_split -c tier1,tier2_lg -p tier1only -n 40000 -s 0.05 -a y
+> python -m prepare.create_training_testing_split -c tier1,tier1_lg,tier2 -p comparison -n 40000 -s 0.2 -a y
+> python -m prepare.create_training_testing_split -c tier1,tier1_lg -p contest -n 40000 -s 0.05 -a y
 ```
 
 _Please note: When creating these datasets, the mean and standard deviation of the pixels are being calculated.  This is an expensive process that may take a significant amount of time._
 
-## Exploring the Sample Training Dataset
+## Mask RCNN Model Training
 
-## Exploring the Sample Training Datasets
+Please note that after a model is trained, it should be moved out of the `temp_data/logs` directory and directly into the `temp_data` directory.  The Mask RCNN model will save each epoch of training into the logs folder.  This allows for easy restarting of training if--and unfortunately when--training crashes or is interrupted.
 
-the notebook `explore/sample_exploration.ipynb` can be run to perform a quick analysis on the sample training dataset.
+The Mask RCNN will train in three total stages beginning with only the head layers and extending the training depth each stage.
 
-## Exploring the Real Training Datasets
+### Sample Data Training
 
-The notebook `explore/training_testing_exploration.ipynb` can be run to perform a quick analysis on the tier1and2 training dataset.
+```
+python -m model.train_mrcnn_model -df temp_data/sample_mask_rcnn_training_testing.csv -s 80 -vs 10 -eh 40 -er 20 -ea 20
+```
+
+When training is finished, the model should be moved to `temp_data/sample_mask_rcnn_building_0080.h5`.
+
+### Comparison Model Training
+
+```
+python -m model.train_mrcnn_model -df temp_data/comparison_mask_rcnn_training_testing.csv -s 2000 -vs 200 -eh 40 -er 20 -ea 20
+```
+
+When training is finished, the model should be moved to `temp_data/comparison_mask_rcnn_building_0080.h5`.
+
+### Contest Submission Training
+
+```
+python -m model.train_mrcnn_model -df temp_data/contest_mask_rcnn_training_testing.csv -s 2000 -vs 200 -eh 40 -er 20 -ea 20
+```
+
+When training is finished, the model should be moved to `temp_data/contest_mask_rcnn_building_0080.h5`.
+
+## Visualizing Mask RCNN Inferences
+
+Inferencing on individual map tiles can be quickly done with the testing code.  This intented primarily for demonstration purposes and will display the map tile and resulting bounding box and mask overlay.
+
+### Sample Model Inferences
+
+```
+python -m model.test_mrcnn_model -df temp_data/sample_mask_rcnn_training_testing.csv -mp temp_data/sample_mask_rcnn_building_0080.h5 -t demo
+```
+
+### Comparison Model Inferences
+
+```
+python -m model.test_mrcnn_model -df temp_data/contest_mask_rcnn_training_testing.csv -mp temp_data/contest_mask_rcnn_building_0080.h5 -t demo
+```
+
+### Contest Model Inferences
+
+```
+python -m model.test_mrcnn_model -df temp_data/contest_mask_rcnn_training_testing.csv -mp temp_data/contest_mask_rcnn_building_0080.h5 -t demo
+```
+
+## Scoring the Mask RCNN Model
+
+Scoring the model can be done by calling the inferencing without generating the image previews and calculating the jaccard index for the set of images.
+
+### Sample Model Scoring
+
+```
+python -m model.test_mrcnn_model -df temp_data/sample_mask_rcnn_training_testing.csv -mp temp_data/sample_mask_rcnn_building_0080.h5 -t score -th 0.9
+```
+
+### Comparison Model Scoring
+
+```
+python -m model.test_mrcnn_model -df temp_data/comparison_mask_rcnn_training_testing.csv -mp temp_data/comparison_mask_rcnn_building_0080.h5 -t score -th 0.9
+```
+
+### Contest Model Scoring
+
+```
+python -m model.test_mrcnn_model -df temp_data/contest_mask_rcnn_training_testing.csv -mp temp_data/contest_rcnn_building_0080_v4.h5 -t score -th 0.9
+```
+
+## Mask RCNN Contest Submission
+
+```
+python -m model.test_mrcnn_model -df temp_data/contest_mask_rcnn_training_testing.csv -mp temp_data/contest_mask_rcnn_building_0080.h5 -t predict -th 0.9
+```
 
 ## License and Attribution
 
