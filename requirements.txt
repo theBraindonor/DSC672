@@ -58,7 +58,7 @@ nbformat==5.0.3
 networkx==2.4
 notebook==6.0.2
 numexpr==2.7.1
-numpy==1.18.1
+numpy==1.22.0
 opencv-python==4.1.2.30
 opencv-python-headless==4.1.2.30
 pandas==0.25.3
